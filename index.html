@@ -23,9 +23,9 @@ header { position:fixed; top:0; width:100%; padding:12px; background:#0ff; color
 </div>
 
 <script type="module">
-import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.157.0/build/three.module.js";
-import { OrbitControls } from "https://cdn.jsdelivr.net/npm/three@0.157.0/examples/jsm/controls/OrbitControls.js";
-import { GLTFLoader } from "https://cdn.jsdelivr.net/npm/three@0.157.0/examples/jsm/loaders/GLTFLoader.js";
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.157.0/build/three.module.js';
+import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.157.0/examples/jsm/controls/OrbitControls.js';
+import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.157.0/examples/jsm/loaders/GLTFLoader.js';
 
 /* ===== SCENE SETUP ===== */
 const scene = new THREE.Scene();
@@ -49,7 +49,10 @@ dirLight.position.set(10,20,10);
 scene.add(dirLight);
 
 /* ===== FLOOR ===== */
-const floor = new THREE.Mesh(new THREE.PlaneGeometry(60,60), new THREE.MeshStandardMaterial({color:0x222222}));
+const floor = new THREE.Mesh(
+  new THREE.PlaneGeometry(60,60),
+  new THREE.MeshStandardMaterial({color:0x222222})
+);
 floor.rotation.x = -Math.PI/2;
 scene.add(floor);
 
@@ -60,13 +63,14 @@ let bullets = [], enemies = [], shields = [];
 let score = 0, p1Health = 100, p2Health = 100, bossHealth = 200;
 const keys = {};
 
-/* ===== LOAD MODELS (CORS-ENABLED) ===== */
+/* ===== LOAD MODELS ===== */
 function loadModel(url){
   return new Promise((resolve,reject)=>{
     loader.load(url, gltf=>resolve(gltf.scene), undefined, err=>reject(err));
   });
 }
 
+// Using public Three.js GLTF model for demo
 const modelURL = "https://threejs.org/examples/models/gltf/RobotExpressive/RobotExpressive.glb";
 
 Promise.all([
@@ -98,7 +102,10 @@ setInterval(spawnEnemy,7000);
 /* ===== BULLETS ===== */
 function shootBullet(player){
   if(!player) return;
-  let b = new THREE.Mesh(new THREE.SphereGeometry(0.2,8,8), new THREE.MeshStandardMaterial({color:0xffff00, emissive:0xffff00}));
+  let b = new THREE.Mesh(
+    new THREE.SphereGeometry(0.2,8,8),
+    new THREE.MeshStandardMaterial({color:0xffff00, emissive:0xffff00})
+  );
   b.position.copy(player.position).add(new THREE.Vector3(0,1,0));
   b.owner = player;
   scene.add(b);
@@ -108,7 +115,10 @@ function shootBullet(player){
 /* ===== SHIELDS ===== */
 function activateShield(player){
   if(!player) return;
-  let s = new THREE.Mesh(new THREE.SphereGeometry(1.5,16,16), new THREE.MeshStandardMaterial({color:0x00ffff, transparent:true, opacity:0.4}));
+  let s = new THREE.Mesh(
+    new THREE.SphereGeometry(1.5,16,16),
+    new THREE.MeshStandardMaterial({color:0x00ffff, transparent:true, opacity:0.4})
+  );
   s.position.copy(player.position);
   s.owner = player;
   scene.add(s);
@@ -157,7 +167,7 @@ function animate(){
     if(keys["arrowright"]) player2.position.x +=0.2;
   }
 
-  // Move bullets backward loop
+  // Move bullets and collisions
   for(let i=bullets.length-1;i>=0;i--){
     let b = bullets[i];
     b.position.z -= 0.5;
@@ -167,10 +177,8 @@ function animate(){
       let e = enemies[j];
       if(b.position.distanceTo(e.position)<1){
         scene.remove(b); scene.remove(e);
-        bullets.splice(i,1);
-        enemies.splice(j,1);
-        score += 10;
-        break;
+        bullets.splice(i,1); enemies.splice(j,1);
+        score += 10; break;
       }
     }
 

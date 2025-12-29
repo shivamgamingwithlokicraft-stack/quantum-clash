@@ -23,6 +23,7 @@ header { position:fixed; top:0; width:100%; padding:12px; background:#0ff; color
 </div>
 
 <script type="module">
+// ✅ Import from CDN (fixed 'three' error)
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.157.0/build/three.module.js';
 import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.157.0/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.157.0/examples/jsm/loaders/GLTFLoader.js';
@@ -70,18 +71,19 @@ const keys = {};
 /* ===== LOAD MODELS ===== */
 function loadModel(url){
   return new Promise((resolve,reject)=>{
-    loader.load(url, gltf=>resolve(gltf.scene), undefined, err=>reject(err));
+    loader.load(url, gltf => resolve(gltf.scene), undefined, err => reject(err));
   });
 }
 
+// Make sure your model path is correct relative to index.html
 const modelURL = "./assets/models/RobotExpressive.glb";
 
 Promise.all([
-  loadModel(modelURL),
-  loadModel(modelURL),
-  loadModel(modelURL),
-  loadModel(modelURL)
-]).then(models=>{
+  loadModel(modelURL), // player1
+  loadModel(modelURL), // player2
+  loadModel(modelURL), // boss
+  loadModel(modelURL)  // enemy template
+]).then(models => {
   [player1, player2, boss, enemyModel] = models;
 
   player1.scale.set(2,2,2); player1.position.set(-5,0,0); scene.add(player1);
@@ -207,3 +209,4 @@ window.addEventListener("resize", ()=>{
 
 </body>
 </html>
+

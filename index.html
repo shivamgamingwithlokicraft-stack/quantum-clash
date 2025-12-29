@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>QuantumClash 3D</title>
+<link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/616/616408.png">
 <style>
 body { margin:0; overflow:hidden; background:#111; font-family:Arial,sans-serif; }
 canvas { position:fixed; top:0; left:0; z-index:1; }
@@ -23,7 +24,7 @@ header { position:fixed; top:0; width:100%; padding:12px; background:#0ff; color
 </div>
 
 <script type="module">
-// ✅ Import from CDN (fixed 'three' error)
+// ✅ Fixed imports with CDN URLs
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.157.0/build/three.module.js';
 import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.157.0/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.157.0/examples/jsm/loaders/GLTFLoader.js';
@@ -75,14 +76,13 @@ function loadModel(url){
   });
 }
 
-// Make sure your model path is correct relative to index.html
 const modelURL = "./assets/models/RobotExpressive.glb";
 
 Promise.all([
-  loadModel(modelURL), // player1
-  loadModel(modelURL), // player2
-  loadModel(modelURL), // boss
-  loadModel(modelURL)  // enemy template
+  loadModel(modelURL),
+  loadModel(modelURL),
+  loadModel(modelURL),
+  loadModel(modelURL)
 ]).then(models => {
   [player1, player2, boss, enemyModel] = models;
 
@@ -209,4 +209,3 @@ window.addEventListener("resize", ()=>{
 
 </body>
 </html>
-

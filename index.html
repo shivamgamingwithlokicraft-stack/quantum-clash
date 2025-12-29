@@ -33,15 +33,18 @@ scene.background = new THREE.Color(0x111111);
 
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
 camera.position.set(0, 15, 35);
-camera.lookAt(0,0,0);
 
 const renderer = new THREE.WebGLRenderer({antialias:true});
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
+/* ===== CONTROLS ===== */
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableRotate = false;
 controls.enablePan = false;
+controls.enableDamping = true;
+controls.dampingFactor = 0.05;
+controls.target.set(0, 5, 0);
 
 /* ===== LIGHTS ===== */
 scene.add(new THREE.AmbientLight(0xffffff, 1.2));
@@ -71,14 +74,13 @@ function loadModel(url){
   });
 }
 
-// Local model path (Vercel friendly)
 const modelURL = "./assets/models/RobotExpressive.glb";
 
 Promise.all([
-  loadModel(modelURL), // player1
-  loadModel(modelURL), // player2
-  loadModel(modelURL), // boss
-  loadModel(modelURL)  // enemy template
+  loadModel(modelURL),
+  loadModel(modelURL),
+  loadModel(modelURL),
+  loadModel(modelURL)
 ]).then(models=>{
   [player1, player2, boss, enemyModel] = models;
 
@@ -191,6 +193,7 @@ function animate(){
   shields.forEach(s=>s.position.copy(s.owner.position));
 
   updateUI();
+  controls.update();
   renderer.render(scene,camera);
 }
 

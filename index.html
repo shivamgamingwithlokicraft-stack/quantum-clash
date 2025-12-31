@@ -2,87 +2,91 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>QuantumClash 3D - Full Version</title>
+<title>QuantumClash 3D - Intro Edition</title>
 <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/616/616408.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-body {
-    margin: 0;
-    overflow: hidden;
-    background: #111;
-    font-family: Arial, sans-serif;
+body { margin:0; overflow:hidden; background:#000; font-family:'Courier New', Courier, monospace; }
+
+/* HUD UI */
+header { 
+  position:fixed; top:0; width:100%; padding:10px; 
+  background:rgba(0, 255, 255, 0.1); border-bottom: 2px solid #0ff;
+  text-align:center; font-weight:bold; z-index:10; 
+  color:#0ff; text-transform:uppercase; letter-spacing:4px;
+  font-size: 1.5rem;
+  text-shadow: 0 0 10px #0ff;
+  animation: titlePulse 2s infinite;
 }
-header {
-    position: fixed;
-    top: 0;
-    width: 100%;
-    padding: 12px;
-    background: #0ff;
-    text-align: center;
-    font-weight: bold;
-    z-index: 10;
-    color: #000;
-    text-transform: uppercase;
-    letter-spacing: 2px;
+
+@keyframes titlePulse {
+  0% { text-shadow: 0 0 10px #0ff; opacity: 0.8; }
+  50% { text-shadow: 0 0 25px #0ff, 0 0 5px #fff; opacity: 1; }
+  100% { text-shadow: 0 0 10px #0ff; opacity: 0.8; }
 }
-#ui {
-    position: fixed;
-    top: 60px;
-    left: 10px;
-    color: #0ff;
-    z-index: 10;
-    text-shadow: 1px 1px 0 #000;
-    font-size: 14px;
-}
+
+#ui { position:fixed; top:80px; left:10px; color:#0ff; z-index:10; text-shadow: 1px 1px 0 #000; font-size:14px; pointer-events: none;}
 #mobile {
-    position: fixed;
-    bottom: 20px;
-    width: 100%;
-    display: flex;
-    justify-content: space-around;
-    z-index: 20;
-    pointer-events: none;
+  position:fixed; bottom:20px; width:100%; display:flex;
+  justify-content:space-around; z-index:20; pointer-events: none;
 }
+
+/* START SCREEN OVERLAY */
+#start-screen {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.6);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  z-index: 100; backdrop-filter: blur(5px);
+  transition: opacity 0.5s;
+}
+
+#start-btn {
+  background: transparent;
+  color: #0ff;
+  font-family: inherit;
+  font-size: 2rem;
+  padding: 20px 40px;
+  border: 2px solid #0ff;
+  border-radius: 5px;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 5px;
+  box-shadow: 0 0 15px #0ff;
+  transition: all 0.3s;
+  animation: borderPulse 1.5s infinite;
+}
+
+#start-btn:hover {
+  background: #0ff;
+  color: #000;
+  box-shadow: 0 0 30px #0ff, 0 0 60px #0ff;
+}
+
+@keyframes borderPulse {
+  0% { box-shadow: 0 0 15px #0ff inset, 0 0 15px #0ff; }
+  50% { box-shadow: 0 0 25px #0ff inset, 0 0 25px #0ff; }
+  100% { box-shadow: 0 0 15px #0ff inset, 0 0 15px #0ff; }
+}
+
 .btn {
-    background: rgba(0, 255, 255, 0.2);
-    border: 2px solid #0ff;
-    color: #0ff;
-    padding: 15px;
-    border-radius: 50%;
-    font-weight: bold;
-    pointer-events: auto;
-    cursor: pointer;
-    width: 60px;
-    height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 20px;
-    user-select: none;
-    backdrop-filter: blur(4px);
+  background:rgba(0, 255, 255, 0.2); border: 2px solid #0ff; color:#0ff; padding:15px;
+  border-radius:50%; font-weight:bold; pointer-events: auto; cursor: pointer;
+  width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;
+  font-size: 20px; user-select: none; backdrop-filter: blur(4px);
 }
-.btn:active {
-    background: #0ff;
-    color: #000;
-}
-#flash {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: #fff;
-    opacity: 0;
-    z-index: 50;
-    pointer-events: none;
-}
+.btn:active { background:#0ff; color:#000; }
 </style>
 </head>
 
 <body>
 <header>QuantumClash 3D</header>
-<div id="flash"></div>
+
+<div id="start-screen">
+  <h1 style="color:white; margin-bottom: 40px; text-shadow: 0 0 20px #fff;">SYSTEM READY</h1>
+  <button id="start-btn">INITIALIZE</button>
+</div>
 
 <div id="ui">
   <div id="score" style="font-size: 1.2em; margin-bottom: 5px;">Score: 0</div>
@@ -99,30 +103,27 @@ header {
 <script type="module">
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.157/build/three.module.js';
 
-/* =================================
-            SCENE SETUP
-================================= */
+/* ===== SCENE SETUP ===== */
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x050510);
-scene.fog = new THREE.Fog(0x050510, 20, 120);
+scene.fog = new THREE.Fog(0x050510, 20, 90);
 
-const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 1000);
-camera.position.set(0, 15, 40);
+const camera = new THREE.PerspectiveCamera(70, innerWidth/innerHeight, 0.1, 1000);
+// Start far away for the intro
+camera.position.set(0, 5, 80); 
 
-const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
 renderer.shadowMap.enabled = true;
 document.body.appendChild(renderer.domElement);
 
-/* =================================
-            LIGHTING
-================================= */
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+/* ===== LIGHTS ===== */
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
 scene.add(ambientLight);
 
 const dirLight = new THREE.DirectionalLight(0xffffff, 1);
-dirLight.position.set(10, 20, 10);
+dirLight.position.set(10,20,10);
 dirLight.castShadow = true;
 scene.add(dirLight);
 
@@ -134,336 +135,289 @@ const redLight = new THREE.PointLight(0xff0000, 2, 50);
 redLight.position.set(10, 5, -20);
 scene.add(redLight);
 
-/* =================================
-            FLOOR
-================================= */
+/* ===== ENVIRONMENT ===== */
+// Grid Floor
 const gridHelper = new THREE.GridHelper(100, 50, 0x00ffff, 0x222222);
 scene.add(gridHelper);
 
-const floorMaterial = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.8, metalness: 0.2 });
-const floor = new THREE.Mesh(new THREE.PlaneGeometry(100, 100), floorMaterial);
-floor.rotation.x = -Math.PI / 2;
-floor.receiveShadow = true;
-scene.add(floor);
+// Warp Starfield (Particles)
+const starGeo = new THREE.BufferGeometry();
+const starCount = 2000;
+const starPos = new Float32Array(starCount * 3);
+for(let i=0; i<starCount*3; i++) {
+  starPos[i] = (Math.random() - 0.5) * 200;
+}
+starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+const starMat = new THREE.PointsMaterial({color: 0xffffff, size: 0.3});
+const starField = new THREE.Points(starGeo, starMat);
+scene.add(starField);
 
-/* =================================
-            FLASH EFFECT
-================================= */
-const flashEl = document.getElementById("flash");
-
-/* =================================
-            ROBOT CREATOR
-================================= */
+/* ===== ROBOT CREATION ===== */
 function createRobot(color, scale = 1) {
-    const group = new THREE.Group();
+  const group = new THREE.Group();
+  const mat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.3 });
+  const darkMat = new THREE.MeshStandardMaterial({ color: 0x333333 });
 
-    // Materials
-    const mat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.3 });
-    const darkMat = new THREE.MeshStandardMaterial({ color: 0x333333 });
+  const body = new THREE.Mesh(new THREE.BoxGeometry(1, 1.5, 0.6), mat);
+  body.position.y = 1.5; body.castShadow = true; group.add(body);
 
-    // Body
-    const body = new THREE.Mesh(new THREE.BoxGeometry(1, 1.5, 0.6), mat);
-    body.position.y = 1.5;
-    body.castShadow = true;
-    group.add(body);
+  const head = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.7, 0.7), darkMat);
+  head.position.y = 2.6; group.add(head);
 
-    // Head
-    const head = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.7, 0.7), darkMat);
-    head.position.y = 2.6;
-    group.add(head);
+  const eyeMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+  const eyes = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.1, 0.1), eyeMat);
+  eyes.position.set(0, 2.6, 0.36); group.add(eyes);
 
-    // Arms
-    const armL = new THREE.Mesh(new THREE.BoxGeometry(0.4, 1, 0.4), darkMat);
-    armL.position.set(-0.7, 1.5, 0);
-    group.add(armL);
+  const armL = new THREE.Mesh(new THREE.BoxGeometry(0.4, 1, 0.4), darkMat);
+  armL.position.set(-0.7, 1.5, 0); group.add(armL);
+  const armR = new THREE.Mesh(new THREE.BoxGeometry(0.4, 1, 0.4), darkMat);
+  armR.position.set(0.7, 1.5, 0); group.add(armR);
 
-    const armR = new THREE.Mesh(new THREE.BoxGeometry(0.4, 1, 0.4), darkMat);
-    armR.position.set(0.7, 1.5, 0);
-    group.add(armR);
-
-    // Eyes
-    const eyeGeo = new THREE.BoxGeometry(0.5, 0.1, 0.1);
-    const eyeMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-    const eyes = new THREE.Mesh(eyeGeo, eyeMat);
-    eyes.position.set(0, 2.6, 0.36);
-    group.add(eyes);
-
-    group.userData = { body, head, armL, armR, eyes };
-    group.scale.set(scale, scale, scale);
-
-    return group;
+  group.scale.set(scale, scale, scale);
+  return group;
 }
 
-/* =================================
-            GAME VARIABLES
-================================= */
-let player = createRobot(0x00ffff, 2);
-player.position.set(0, 0, 10);
-scene.add(player);
+/* ===== GAME VARIABLES ===== */
+let gameState = 'intro'; // 'intro', 'transition', 'playing', 'gameover'
+const bullets = [];
+const enemies = [];
+const particles = [];
 
-let boss = createRobot(0xff0000, 4);
-boss.position.set(0, 0, -25);
+let player1, boss;
+let score=0, playerHealth=100, bossHealth=200;
+
+player1 = createRobot(0x00ffff, 2);
+player1.position.set(0,0,10);
+player1.visible = false; // Hide during intro
+scene.add(player1);
+
+boss = createRobot(0xff0000, 4);
+boss.position.set(0,0,-20);
 scene.add(boss);
 
-let bullets = [];
-let enemies = [];
-let particles = [];
+/* ===== PARTICLE SYSTEM ===== */
+function createExplosion(position, color) {
+  for(let i=0; i<8; i++) {
+    const geo = new THREE.BoxGeometry(0.3, 0.3, 0.3);
+    const mat = new THREE.MeshBasicMaterial({ color: color });
+    const p = new THREE.Mesh(geo, mat);
+    p.position.copy(position);
+    p.userData = {
+      velocity: new THREE.Vector3((Math.random()-0.5)*0.5, Math.random()*0.5, (Math.random()-0.5)*0.5),
+      life: 1.0
+    };
+    scene.add(p);
+    particles.push(p);
+  }
+}
 
-let score = 0;
-let playerHealth = 100;
-let bossHealth = 200;
-let level = 1;
-let isGameOver = false;
-let enemySpawnRate = 2000;
-let lastEnemySpawn = 0;
+/* ===== BULLET SYSTEM ===== */
+function createBullet(position, isPlayer) {
+  const geo = new THREE.SphereGeometry(0.4);
+  const mat = new THREE.MeshBasicMaterial({ color: isPlayer ? 0xffff00 : 0xff00ff });
+  const b = new THREE.Mesh(geo, mat);
+  b.position.copy(position);
+  b.position.y += 1.5;
+  b.userData = { 
+    velocity: new THREE.Vector3(0, 0, isPlayer ? -1.5 : 1.0),
+    isPlayer: isPlayer
+  };
+  scene.add(b);
+  bullets.push(b);
+}
+
+/* ===== GAME LOGIC HELPERS ===== */
+let lastSpawn = 0;
+setInterval(()=>{
+  if(gameState !== 'playing') return;
+  const e = createRobot(0xff8800, 1.5);
+  e.position.set(Math.random()*30-15, 0, -35);
+  scene.add(e);
+  enemies.push(e);
+}, 2000);
+
 let lastBossShot = 0;
 
-let moveDirection = 0;
-let canShoot = true;
-let shakeIntensity = 0;
+/* ===== ANIMATION LOOP ===== */
+const clock = new THREE.Clock();
+let introTime = 0;
 
-/* =================================
-            BULLET SYSTEM
-================================= */
-function shootBullet(position, velocity, color, owner) {
-    const geo = new THREE.SphereGeometry(0.35);
-    const mat = new THREE.MeshBasicMaterial({ color: color });
-    const bullet = new THREE.Mesh(geo, mat);
-    bullet.position.copy(position);
-    bullet.position.y += 1.6;
-    bullet.userData = { velocity: velocity.clone(), owner: owner };
-    scene.add(bullet);
-    bullets.push(bullet);
+function animate(){
+  requestAnimationFrame(animate);
+  const dt = clock.getDelta();
+  const time = Date.now();
 
-    // Animate player arm recoil
-    if(owner === "player") player.userData.armR.rotation.x = -0.8;
-}
+  // --- INTRO ANIMATION STATE ---
+  if (gameState === 'intro') {
+    introTime += dt;
+    
+    // Camera rotates around the center
+    const radius = 60 - (introTime * 2); // Slowly get closer
+    camera.position.x = Math.sin(time * 0.0005) * radius;
+    camera.position.z = Math.cos(time * 0.0005) * radius;
+    camera.position.y = 10 + Math.sin(time * 0.001) * 5;
+    camera.lookAt(0, 5, 0);
 
-/* =================================
-            PARTICLE SYSTEM
-================================= */
-function createExplosion(position, color) {
-    flashEl.style.opacity = 0.3;
-    setTimeout(() => { flashEl.style.opacity = 0; }, 50);
-
-    for(let i = 0; i < 12; i++) {
-        const geo = new THREE.BoxGeometry(0.25, 0.25, 0.25);
-        const mat = new THREE.MeshBasicMaterial({ color: color });
-        const particle = new THREE.Mesh(geo, mat);
-        particle.position.copy(position);
-        particle.userData = {
-            velocity: new THREE.Vector3((Math.random() - 0.5) * 0.6, Math.random() * 0.6, (Math.random() - 0.5) * 0.6),
-            life: 1
-        };
-        scene.add(particle);
-        particles.push(particle);
+    // Warp Star Effect (Stars move towards camera)
+    const positions = starField.geometry.attributes.position.array;
+    for(let i=2; i<positions.length; i+=3) {
+      positions[i] += 1.5; // Move Z towards camera
+      if(positions[i] > 50) positions[i] = -100; // Reset
     }
-}
+    starField.geometry.attributes.position.needsUpdate = true;
+    
+    // Boss idle spin
+    boss.rotation.y += 0.01;
+  } 
 
-/* =================================
-            ENEMY SPAWNING
-================================= */
-function spawnEnemy(time) {
-    if(isGameOver) return;
-    if(time - lastEnemySpawn > enemySpawnRate) {
-        const e = createRobot(0xff8800, 1.6);
-        e.position.set(Math.random() * 30 - 15, 0, -45);
-        scene.add(e);
-        enemies.push(e);
-        lastEnemySpawn = time;
+  // --- TRANSITION STATE (Start Button Clicked) ---
+  else if (gameState === 'transition') {
+    // Smoothly Lerp camera to gameplay position (0, 15, 35)
+    camera.position.lerp(new THREE.Vector3(0, 15, 35), 0.05);
+    camera.lookAt(0, 5, 0);
+    
+    // Stop stars from warping, make them slow drift
+    const positions = starField.geometry.attributes.position.array;
+    for(let i=2; i<positions.length; i+=3) {
+        positions[i] += 0.1;
+        if(positions[i] > 50) positions[i] = -100;
     }
-}
+    starField.geometry.attributes.position.needsUpdate = true;
 
-/* =================================
-            BOSS AI
-================================= */
-function bossAI(time) {
-    if(!boss || isGameOver) return;
+    // Check if camera is close enough to start game
+    if (camera.position.distanceTo(new THREE.Vector3(0, 15, 35)) < 1) {
+      gameState = 'playing';
+      player1.visible = true;
+      boss.rotation.set(0,0,0); // Reset boss rotation
+    }
+  }
 
-    // Side-to-side movement
-    boss.position.x = Math.sin(time * 0.0015) * 12;
-    boss.position.y = Math.sin(time * 0.002) * 0.3;
+  // --- PLAYING STATE ---
+  else if (gameState === 'playing') {
+    
+    // Boss AI
+    boss.position.x = Math.sin(time * 0.001) * 10;
+    if(time - lastBossShot > 1000) {
+      createBullet(boss.position, false);
+      lastBossShot = time;
+    }
 
-    // Shooting pattern
-    let interval = bossHealth < 100 ? 600 : 1000;
-    if(time - lastBossShot > interval) {
-        const shots = bossHealth < 100 ? 3 : 1;
-        for(let i=0; i<shots; i++) {
-            const angle = (i-1)*0.15;
-            shootBullet(boss.position, new THREE.Vector3(Math.sin(angle),0,1).normalize().multiplyScalar(1.4), 0xff00ff, "boss");
+    // Player Bobbing
+    player1.position.y = Math.sin(time * 0.005) * 0.2;
+
+    // Bullets
+    for (let i = bullets.length - 1; i >= 0; i--) {
+      const b = bullets[i];
+      b.position.add(b.userData.velocity);
+      if (b.position.z < -50 || b.position.z > 50) {
+        scene.remove(b); bullets.splice(i, 1); continue;
+      }
+
+      if (b.userData.isPlayer) {
+        let hit = false;
+        // Hit Boss
+        if (b.position.distanceTo(boss.position) < 2.5) {
+          bossHealth -= 5; createExplosion(b.position, 0xff0000); hit = true;
+          if(bossHealth <= 0) endGame(true);
         }
-        lastBossShot = time;
+        // Hit Minions
+        if (!hit) {
+          for (let j = enemies.length - 1; j >= 0; j--) {
+            if (b.position.distanceTo(enemies[j].position) < 1.5) {
+              createExplosion(enemies[j].position, 0xff8800);
+              scene.remove(enemies[j]); enemies.splice(j, 1);
+              score += 100; hit = true; break;
+            }
+          }
+        }
+        if (hit) { scene.remove(b); bullets.splice(i, 1); }
+      } else {
+        // Enemy Hit Player
+        if (b.position.distanceTo(player1.position) < 1.5) {
+          playerHealth -= 10; createExplosion(player1.position, 0x00ffff);
+          scene.remove(b); bullets.splice(i, 1);
+          if(playerHealth <= 0) endGame(false);
+        }
+      }
     }
+
+    // Enemies Move
+    enemies.forEach((e, i) => {
+      e.position.z += 0.1; e.lookAt(player1.position);
+      e.children[0].rotation.x = Math.sin(time * 0.01 + i) * 0.1; 
+      if (e.position.distanceTo(player1.position) < 1.5) {
+        playerHealth -= 1; scene.remove(e); enemies.splice(i, 1);
+      }
+    });
+  }
+
+  // Particles (Always update)
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    p.position.add(p.userData.velocity);
+    p.userData.velocity.y -= 0.02;
+    p.userData.life -= 0.05;
+    p.scale.setScalar(p.userData.life);
+    if(p.userData.life <= 0 || p.position.y < 0) { scene.remove(p); particles.splice(i, 1); }
+  }
+
+  updateUI();
+  renderer.render(scene,camera);
 }
 
-/* =================================
-            PLAYER CONTROLS
-================================= */
-function firePlayer() {
-    if(!canShoot || isGameOver) return;
-    shootBullet(player.position, new THREE.Vector3(0, 0, -1), 0xffff00, "player");
-    canShoot = false;
-    player.userData.armR.rotation.x = -0.8;
-    setTimeout(() => { canShoot = true; }, 300);
+/* ===== UI & CONTROLS ===== */
+function updateUI() {
+  document.getElementById("score").textContent = "Score: "+score;
+  document.getElementById("p1").textContent = "Player Health: "+playerHealth;
+  document.getElementById("boss").textContent = "Boss Health: "+bossHealth;
+}
+
+function endGame(victory) {
+  gameState = 'gameover';
+  const header = document.querySelector("header");
+  if(victory) {
+    header.textContent = "VICTORY!";
+    header.style.background = "#0f0";
+  } else {
+    header.textContent = "GAME OVER";
+    header.style.background = "#f00";
+  }
 }
 
 function movePlayer(dir) {
-    if(!player || isGameOver) return;
-    player.position.x += dir;
-    player.position.x = Math.max(-16, Math.min(16, player.position.x));
+  if(gameState !== 'playing') return;
+  player1.position.x += dir;
+  player1.position.x = Math.max(-14, Math.min(14, player1.position.x));
 }
+
+// Start Button
+document.getElementById("start-btn").addEventListener("click", () => {
+  document.getElementById("start-screen").style.opacity = '0';
+  setTimeout(() => {
+    document.getElementById("start-screen").style.display = 'none';
+  }, 500);
+  gameState = 'transition';
+});
 
 // Keyboard
-window.addEventListener("keydown", e => {
-    if(e.key === "ArrowLeft") moveDirection = -1;
-    if(e.key === "ArrowRight") moveDirection = 1;
-    if(e.code === "Space") firePlayer();
+window.addEventListener("keydown", (e) => {
+  if(e.key === "ArrowLeft") movePlayer(-2);
+  if(e.key === "ArrowRight") movePlayer(2);
+  if(e.code === "Space") createBullet(player1.position, true);
 });
-
-window.addEventListener("keyup", e => { moveDirection = 0; });
 
 // Mobile
-document.getElementById("left").ontouchstart = e => { e.preventDefault(); moveDirection = -1; };
-document.getElementById("right").ontouchstart = e => { e.preventDefault(); moveDirection = 1; };
-document.getElementById("shoot").ontouchstart = e => { e.preventDefault(); firePlayer(); };
-document.getElementById("left").ontouchend = document.getElementById("right").ontouchend = () => { moveDirection = 0; };
+document.getElementById("left").ontouchstart = (e) => { e.preventDefault(); movePlayer(-2); };
+document.getElementById("right").ontouchstart = (e) => { e.preventDefault(); movePlayer(2); };
+document.getElementById("shoot").ontouchstart = (e) => { e.preventDefault(); createBullet(player1.position, true); };
 
-/* =================================
-            CAMERA SHAKE
-================================= */
-function shakeCamera(intensity=0.3) {
-    shakeIntensity = intensity;
-}
-
-function applyCameraShake() {
-    if(shakeIntensity > 0) {
-        camera.position.x += (Math.random() - 0.5) * shakeIntensity;
-        camera.position.y += (Math.random() - 0.5) * shakeIntensity;
-        shakeIntensity *= 0.85;
-    }
-}
-
-/* =================================
-            GAME LOOP
-================================= */
-const clock = new THREE.Clock();
-
-function animate() {
-    requestAnimationFrame(animate);
-
-    const time = Date.now();
-    const delta = clock.getDelta();
-
-    if(isGameOver) {
-        renderer.render(scene, camera);
-        return;
-    }
-
-    bossAI(time);
-    spawnEnemy(time);
-
-    // Player movement
-    player.position.x += moveDirection * 0.6;
-    player.position.y = Math.sin(time * 0.005) * 0.2;
-    player.userData.armR.rotation.x *= 0.9;
-
-    // Update bullets
-    for(let i = bullets.length - 1; i >= 0; i--) {
-        const b = bullets[i];
-        b.position.add(b.userData.velocity);
-
-        if(b.position.z < -60 || b.position.z > 60) {
-            scene.remove(b);
-            bullets.splice(i, 1);
-            continue;
-        }
-
-        if(b.userData.owner === "player") {
-            const distBoss = b.position.distanceTo(boss.position);
-            if(distBoss < 3) {
-                bossHealth -= 5;
-                createExplosion(b.position, 0xff0033);
-                shakeCamera(0.25);
-                scene.remove(b);
-                bullets.splice(i,1);
-            }
-        } else if(b.userData.owner === "boss") {
-            const distPlayer = b.position.distanceTo(player.position);
-            if(distPlayer < 2) {
-                playerHealth -= 10;
-                createExplosion(player.position, 0x00ffff);
-                shakeCamera(0.2);
-                scene.remove(b);
-                bullets.splice(i,1);
-            }
-        }
-    }
-
-    // Update enemies
-    for(let i = enemies.length - 1; i >= 0; i--) {
-        const e = enemies[i];
-        e.position.z += 0.15;
-        e.userData.body.rotation.y += 0.05;
-        e.position.y = Math.sin(time*0.01 + i) * 0.1;
-
-        if(e.position.distanceTo(player.position) < 2) {
-            playerHealth -= 5;
-            createExplosion(e.position, 0xff8800);
-            scene.remove(e);
-            enemies.splice(i, 1);
-        }
-    }
-
-    // Update particles
-    for(let i = particles.length - 1; i >= 0; i--) {
-        const p = particles[i];
-        p.position.add(p.userData.velocity);
-        p.userData.life -= 0.05;
-        p.scale.setScalar(p.userData.life);
-        if(p.userData.life <= 0) {
-            scene.remove(p);
-            particles.splice(i, 1);
-        }
-    }
-
-    // Level progression
-    score++;
-    if(bossHealth <= 0 && !isGameOver) {
-        level++;
-        bossHealth = 200 + level*50;
-        enemySpawnRate = Math.max(800, enemySpawnRate - 150);
-        boss.position.set(0,0,-28);
-    }
-
-    // Update UI
-    document.getElementById("score").innerText = "Score: " + score;
-    document.getElementById("p1").innerText = "Player Health: " + playerHealth;
-    document.getElementById("boss").innerText = "Boss Health: " + bossHealth;
-
-    // Game over
-    if(playerHealth <= 0) {
-        isGameOver = true;
-        document.querySelector("header").innerText = "GAME OVER";
-    }
-
-    // Camera shake
-    applyCameraShake();
-
-    // Render
-    renderer.render(scene, camera);
-}
+window.addEventListener("resize",()=>{
+  camera.aspect=innerWidth/innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth,innerHeight);
+});
 
 animate();
-
-/* =================================
-            WINDOW RESIZE
-================================= */
-window.addEventListener("resize", () => {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-});
 </script>
 </body>
 </html>
-

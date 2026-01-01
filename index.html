@@ -2,17 +2,15 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>QuantumClash: Cinematic Edition</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QuantumClash 3D</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
   body { margin:0; overflow:hidden; background:#000; font-family:'Orbitron', sans-serif; color:white; user-select:none; }
   
   /* --- CINEMATIC HUD --- */
   #game-ui { position: absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; display:none; 
-    box-shadow: inset 0 0 100px rgba(0,0,0,0.8); }
+    box-shadow: inset 0 0 100px rgba(0,0,0,0.8); z-index: 10; }
   
-  /* Top HUD Bar - Glassmorphism */
   .hud-top { 
     position: absolute; top:0; width:100%; height: 80px; 
     display:flex; justify-content:space-between; align-items: center; 
@@ -29,12 +27,10 @@
   .fill-p1 { background: linear-gradient(90deg, #00ffff, #0088ff); box-shadow: 0 0 20px #00ffff; }
   .fill-p2 { background: linear-gradient(90deg, #ff0000, #ff8800); box-shadow: 0 0 20px #ff0000; }
 
-  /* Center Notification */
   #center-notify { position:absolute; top:40%; width:100%; text-align:center; font-size:4rem; 
     text-shadow: 0 0 30px rgba(255,255,255,0.8); letter-spacing: 10px; 
     opacity:0; transition: opacity 1s; transform: scale(1.2); }
   
-  /* Radar / Minimap */
   #radar-box { position:absolute; bottom:30px; right:30px; width:180px; height:180px; 
     border: 2px solid rgba(0, 255, 0, 0.5); border-radius: 50%; 
     background: radial-gradient(circle, rgba(0,50,0,0.4) 0%, rgba(0,0,0,0.8) 100%);
@@ -42,14 +38,24 @@
   }
   #radar-canvas { width:100%; height:100%; mix-blend-mode: screen; }
 
-  /* Level Indicator */
   #level-ind { position:absolute; bottom:30px; left:30px; color:#fff; font-size:1.5rem; text-shadow:0 0 10px white; }
+
+  #producer-credit {
+    position: absolute; bottom: 10px; width: 100%; text-align: center;
+    color: rgba(0, 255, 255, 0.6); font-size: 0.8rem; letter-spacing: 2px;
+    text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+    pointer-events: none; z-index: 20;
+  }
   
-  /* MAIN MENU */
+  /* --- MENU SCREEN (Updated for 3D BG) --- */
   #menu-screen { 
     position:fixed; top:0; left:0; width:100%; height:100%; 
-    background: radial-gradient(circle at center, #1a1a2e, #000); z-index:100; 
+    /* CHANGED: Removed static gradient, now transparent to show WebGL BG */
+    background: rgba(0, 0, 0, 0.3); 
+    backdrop-filter: blur(4px); /* Blur background slightly for readability */
+    z-index:100; 
     display:flex; flex-direction:column; align-items:center; justify-content:center; pointer-events:auto; 
+    transition: opacity 0.5s;
   }
   
   h1 { font-size:6rem; margin:0; background: linear-gradient(to right, #0ff, #f0f); -webkit-background-clip: text; color:transparent; text-shadow: 0 0 50px rgba(0,255,255,0.5); }
@@ -68,7 +74,7 @@
 
 </style>
 
-<!-- Import Map with Post Processing -->
+<!-- Import Map -->
 <script type="importmap">
   {
     "imports": {
@@ -80,7 +86,7 @@
 </head>
 <body>
 
-<!-- MENU -->
+<!-- MENU (3D Background visible behind) -->
 <div id="menu-screen">
   <h1>QUANTUM CLASH</h1>
   <div class="level-select">
@@ -90,7 +96,7 @@
   </div>
   <button class="menu-btn" onclick="startGame(1)">1 PLAYER</button>
   <button class="menu-btn" onclick="startGame(2)">2 PLAYER CO-OP</button>
-  <div style="margin-top:30px; color:#666; font-size:0.8rem;">
+  <div style="margin-top:30px; color:#ccc; font-size:0.8rem; text-shadow:0 0 5px black;">
     WASD to Move | SPACE to Shoot (P1)<br>
     ARROWS to Move | ENTER to Shoot (P2)
   </div>
@@ -117,6 +123,8 @@
   <div id="radar-box">
     <canvas id="radar-canvas" width="200" height="200"></canvas>
   </div>
+
+  <div id="producer-credit">Produced by Shivam Singh Patel</div>
 </div>
 
 <script type="module">
@@ -128,10 +136,12 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 
 // --- SETUP ---
 const scene = new THREE.Scene();
+// Default fog for game
 scene.fog = new THREE.FogExp2(0x000000, 0.02);
 
 const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 200);
-camera.position.set(0, 35, 35); // Cinematic high angle
+// Initial Menu Camera Position (Cinematic low angle)
+camera.position.set(0, 5, 25);
 camera.lookAt(0, 0, 0);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
@@ -139,11 +149,11 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.toneMapping = THREE.ReinhardToneMapping;
 document.body.appendChild(renderer.domElement);
 
-// --- POST PROCESSING (THE BLOOM EFFECT) ---
+// --- POST PROCESSING ---
 const renderScene = new RenderPass(scene, camera);
 const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
 bloomPass.threshold = 0.1;
-bloomPass.strength = 1.2; // Intense neon glow
+bloomPass.strength = 1.8; 
 bloomPass.radius = 0.5;
 
 const composer = new EffectComposer(renderer);
@@ -165,7 +175,6 @@ let baseRobotModel;
 const loader = new GLTFLoader();
 loader.load(MODEL_URL, (gltf) => {
   baseRobotModel = gltf.scene;
-  // Prepare model for neon re-texturing
   baseRobotModel.traverse(c => {
     if (c.isMesh) {
       c.castShadow = true;
@@ -174,7 +183,7 @@ loader.load(MODEL_URL, (gltf) => {
   });
 });
 
-// --- AUDIO SYSTEM ---
+// --- AUDIO ---
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 const Sound = {
   play: (freq, type, duration) => {
@@ -192,6 +201,26 @@ const Sound = {
   explosion: () => Sound.play(50, 'sawtooth', 0.4)
 };
 
+// --- MENU BACKGROUND OBJECTS ---
+// These are always present for the background effect
+const starGeo = new THREE.BufferGeometry();
+const starCount = 3000;
+const starPos = [];
+for(let i=0; i<starCount*3; i++) {
+  starPos.push((Math.random()-0.5)*200, (Math.random()-0.5)*100, (Math.random()-0.5)*200);
+}
+starGeo.setAttribute('position', new THREE.Float32BufferAttribute(starPos, 3));
+const stars = new THREE.Points(starGeo, new THREE.PointsMaterial({color:0xffffff, size:0.2, transparent:true, opacity:0.8}));
+scene.add(stars);
+
+// The "Quantum Core" for the menu background
+const coreGeo = new THREE.IcosahedronGeometry(3, 1);
+const coreMat = new THREE.MeshStandardMaterial({ 
+  color: 0x220044, emissive: 0xff00ff, emissiveIntensity: 2, wireframe: true 
+});
+const menuCore = new THREE.Mesh(coreGeo, coreMat);
+scene.add(menuCore);
+
 // --- CLASSES ---
 
 class Player {
@@ -203,12 +232,11 @@ class Player {
     this.mesh = baseRobotModel.clone();
     this.mesh.scale.set(1.5, 1.5, 1.5);
     
-    // Apply Neon Colors
     this.mesh.traverse(c => {
       if(c.isMesh) {
         c.material = c.material.clone();
-        c.material.color.setHex(0x333333); // Dark body
-        c.material.emissive = this.color;  // Glow
+        c.material.color.setHex(0x222222); 
+        c.material.emissive = this.color;  
         c.material.emissiveIntensity = 0.8;
         c.material.roughness = 0.2;
         c.material.metalness = 0.9;
@@ -218,7 +246,6 @@ class Player {
     this.mesh.position.copy(startPos);
     scene.add(this.mesh);
     
-    // Add a point light attached to player for dynamic lighting
     this.light = new THREE.PointLight(this.color, 2, 15);
     this.mesh.add(this.light);
   }
@@ -234,11 +261,13 @@ class Player {
     if(input.left) { this.mesh.position.x -= speed; moving = true; this.mesh.rotation.y = THREE.MathUtils.lerp(this.mesh.rotation.y, Math.PI/2, 0.2); }
     if(input.right) { this.mesh.position.x += speed; moving = true; this.mesh.rotation.y = THREE.MathUtils.lerp(this.mesh.rotation.y, -Math.PI/2, 0.2); }
 
-    // Bobbing animation
     if(moving) {
-      this.mesh.position.y = Math.abs(Math.sin(Date.now() * 0.01)) * 0.5;
-      // Dynamic foot dust particles
-      if(Math.random() < 0.2) spawnParticle(this.mesh.position, this.color, 0.2);
+      if(this.id === 0) { 
+        this.mesh.position.y = Math.abs(Math.sin(Date.now() * 0.008)) * 0.5;
+      } else { 
+        this.mesh.position.y = Math.abs(Math.sin(Date.now() * 0.03)) * 0.3 + (Math.random()*0.1 - 0.05); 
+        if(Math.random() > 0.7) spawnParticle(this.mesh.position, 0xff4400, 0.2);
+      }
     } else {
       this.mesh.rotation.y = THREE.MathUtils.lerp(this.mesh.rotation.y, 0, 0.1);
       this.mesh.position.y = 0;
@@ -248,7 +277,6 @@ class Player {
   takeDamage(amt) {
     this.hp -= amt;
     Sound.hit();
-    // Flash bright white
     this.mesh.traverse(c => { if(c.isMesh) c.material.emissive.setHex(0xffffff); });
     setTimeout(() => { 
       if(this.mesh) this.mesh.traverse(c => { if(c.isMesh) c.material.emissive.copy(this.color); });
@@ -274,19 +302,16 @@ class Enemy {
     });
     this.mesh = new THREE.Mesh(geo, mat);
     
-    // Spawn random perimeter
     const angle = Math.random() * Math.PI * 2;
     const r = 40;
     this.mesh.position.set(Math.cos(angle)*r, 1, Math.sin(angle)*r);
     scene.add(this.mesh);
     
-    // Glowing eye/light
     const light = new THREE.PointLight(0xff0000, 1, 10);
     this.mesh.add(light);
   }
 
   update(dt) {
-    // Target closest player
     let target = null;
     let minDist = 999;
     PLAYERS.forEach(p => {
@@ -304,29 +329,27 @@ class Enemy {
   }
 }
 
-// --- LEVEL GENERATION SYSTEM ---
+// --- LEVELS ---
 
 function clearLevel() {
   LEVEL_OBJECTS.forEach(o => scene.remove(o));
   LEVEL_OBJECTS.length = 0;
+  // Keep stars and menuCore
 }
 
 function createNebulaLevel() {
-  // Background
   scene.fog.color.setHex(0x110022);
   scene.background = new THREE.Color(0x050010);
   
-  // Grid Floor (Neon Purple)
   const grid = new THREE.GridHelper(80, 40, 0xff00ff, 0x220022);
   scene.add(grid); LEVEL_OBJECTS.push(grid);
 
-  // Floating Platforms
-  const geo = new THREE.BoxGeometry(4, 0.5, 4);
-  const mat = new THREE.MeshBasicMaterial({ color: 0x00ffff, wireframe: true, transparent: true, opacity: 0.5 });
-  
-  for(let i=0; i<15; i++) {
+  const geo = new THREE.BoxGeometry(3, 0.2, 3);
+  const mat = new THREE.MeshBasicMaterial({ color: 0x00ffff, wireframe: true, transparent: true, opacity: 0.3 });
+  for(let i=0; i<10; i++) {
     const p = new THREE.Mesh(geo, mat);
-    p.position.set((Math.random()-0.5)*60, Math.random()*5 + 2, (Math.random()-0.5)*60);
+    p.position.set((Math.random()-0.5)*60, 2, (Math.random()-0.5)*60);
+    p.userData = { speed: Math.random() * 0.02 + 0.01, offset: Math.random() * 100 };
     scene.add(p); LEVEL_OBJECTS.push(p);
   }
 }
@@ -335,23 +358,23 @@ function createCityLevel() {
   scene.fog.color.setHex(0x001133);
   scene.background = new THREE.Color(0x000510);
   
-  // Rain System (Instanced Mesh for performance)
-  const rainCount = 2000;
+  const floorMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.0, metalness: 0.8 });
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(100,100), floorMat);
+  floor.rotation.x = -Math.PI/2;
+  scene.add(floor); LEVEL_OBJECTS.push(floor);
+
   const rainGeo = new THREE.BufferGeometry();
-  const positions = [];
-  for(let i=0; i<rainCount; i++) {
-    positions.push((Math.random()-0.5)*100, Math.random()*50, (Math.random()-0.5)*100);
+  const rainPos = [];
+  for(let i=0; i<2000; i++) {
+    rainPos.push((Math.random()-0.5)*100, Math.random()*50, (Math.random()-0.5)*100);
   }
-  rainGeo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  rainGeo.setAttribute('position', new THREE.Float32BufferAttribute(rainPos, 3));
   const rainMat = new THREE.PointsMaterial({ color: 0x00aaff, size: 0.2, transparent: true, opacity: 0.6 });
   const rain = new THREE.Points(rainGeo, rainMat);
-  scene.add(rain); 
-  LEVEL_OBJECTS.push(rain); // We will animate this in loop
+  scene.add(rain); LEVEL_OBJECTS.push(rain);
   
-  // Buildings
   const bGeo = new THREE.BoxGeometry(5, 20, 5);
   const bMat = new THREE.MeshStandardMaterial({ color: 0x050510, roughness: 0.1, metalness: 0.8 });
-  
   for(let i=0; i<30; i++) {
     const b = new THREE.Mesh(bGeo, bMat);
     b.position.set((Math.random()-0.5)*80, 10, (Math.random()-0.5)*80);
@@ -363,14 +386,11 @@ function createAsteroidLevel() {
   scene.fog.color.setHex(0x331100);
   scene.background = new THREE.Color(0x100500);
   
-  // Floor - Magma Grid
   const grid = new THREE.GridHelper(80, 20, 0xff4400, 0x220000);
   scene.add(grid); LEVEL_OBJECTS.push(grid);
   
-  // Rocks
   const rockGeo = new THREE.DodecahedronGeometry(3);
   const rockMat = new THREE.MeshStandardMaterial({ color: 0x552200, flatShading: true });
-  
   for(let i=0; i<20; i++) {
     const r = new THREE.Mesh(rockGeo, rockMat);
     r.position.set((Math.random()-0.5)*70, 1.5, (Math.random()-0.5)*70);
@@ -378,10 +398,9 @@ function createAsteroidLevel() {
     scene.add(r); LEVEL_OBJECTS.push(r);
   }
   
-  // Add Orange Ambient Light
-  const light = new THREE.PointLight(0xff4400, 2, 100);
-  light.position.set(0,10,0);
-  scene.add(light); LEVEL_OBJECTS.push(light);
+  const lavaLight = new THREE.PointLight(0xff4400, 2, 50);
+  lavaLight.position.set(0, -2, 0);
+  scene.add(lavaLight); LEVEL_OBJECTS.push(lavaLight);
 }
 
 // --- PARTICLES ---
@@ -419,7 +438,6 @@ let lastShot = [0, 0];
 function update(dt) {
   if(!GAME.active) return;
 
-  // 1. Player Logic
   if(!PLAYERS[0].dead) {
     PLAYERS[0].update(dt, getInpP1());
     if(getInpP1().fire && Date.now() > lastShot[0]) {
@@ -433,21 +451,15 @@ function update(dt) {
     }
   }
 
-  // 2. Bullet Logic
   for(let i=BULLETS.length-1; i>=0; i--) {
     const b = BULLETS[i];
     b.mesh.position.add(b.vel);
-    
-    // Trail effect (spawn tiny particles)
     if(Math.random() > 0.5) spawnParticle(b.mesh.position, b.color, 0.1);
 
-    // Bounds
     if(Math.abs(b.mesh.position.x) > 50 || Math.abs(b.mesh.position.z) > 50) {
       scene.remove(b.mesh); BULLETS.splice(i,1); continue;
     }
 
-    // Collisions
-    // Hit Enemies
     for(let j=ENEMIES.length-1; j>=0; j--) {
       if(b.mesh.position.distanceTo(ENEMIES[j].mesh.position) < 2) {
         createExplosion(ENEMIES[j].mesh.position, 0xffaa00, 5);
@@ -458,7 +470,6 @@ function update(dt) {
       }
     }
     
-    // PvP Hit
     if(GAME.mode === 2) {
       const target = PLAYERS.find(p => p.id !== b.ownerId && !p.dead);
       if(target && b.mesh.position.distanceTo(target.mesh.position) < 2) {
@@ -468,12 +479,9 @@ function update(dt) {
     }
   }
 
-  // 3. Enemy Logic
   ENEMIES.forEach(e => e.update(dt));
-  // Spawn logic
   if(Math.random() < 0.02 && ENEMIES.length < 8) ENEMIES.push(new Enemy());
 
-  // 4. Particles
   for(let i=PARTICLES.length-1; i>=0; i--) {
     const p = PARTICLES[i];
     p.position.add(p.userData.vel);
@@ -484,8 +492,13 @@ function update(dt) {
     if(p.userData.life <= 0) { scene.remove(p); PARTICLES.splice(i,1); }
   }
 
-  // 5. Level Specific Animations (Rain, Float)
-  if(GAME.levelIdx === 1) { // City Rain
+  if(GAME.levelIdx === 0) { 
+    LEVEL_OBJECTS.forEach(obj => {
+      if(obj.geometry && obj.geometry.type === 'BoxGeometry') {
+         obj.position.y = 2 + Math.sin(Date.now() * obj.userData.speed + obj.userData.offset) * 1;
+      }
+    });
+  } else if (GAME.levelIdx === 1) { 
     const rain = LEVEL_OBJECTS.find(o => o instanceof THREE.Points);
     if(rain) {
       const pos = rain.geometry.attributes.position.array;
@@ -494,6 +507,11 @@ function update(dt) {
         if(pos[i] < 0) pos[i] = 50;
       }
       rain.geometry.attributes.position.needsUpdate = true;
+    }
+  } else if (GAME.levelIdx === 2) { 
+    const light = LEVEL_OBJECTS.find(o => o instanceof THREE.PointLight);
+    if(light) {
+       light.intensity = 2 + Math.sin(Date.now() * 0.005) * 1;
     }
   }
 
@@ -509,10 +527,7 @@ function shoot(player) {
   );
   bMesh.position.copy(player.mesh.position);
   bMesh.position.y += 1.5;
-  
-  // Calculate direction based on rotation
   const dir = new THREE.Vector3(0,0,-1).applyAxisAngle(new THREE.Vector3(0,1,0), player.mesh.rotation.y);
-  
   scene.add(bMesh);
   BULLETS.push({ mesh: bMesh, vel: dir.multiplyScalar(1.5), color: player.color, owner: player.id });
 }
@@ -526,10 +541,8 @@ function drawRadar() {
   const cvs = document.getElementById('radar-canvas');
   const ctx = cvs.getContext('2d');
   ctx.clearRect(0,0,200,200);
-  
   ctx.strokeStyle = 'rgba(0,255,0,0.2)';
   ctx.beginPath(); ctx.arc(100,100,90,0,Math.PI*2); ctx.stroke();
-  ctx.beginPath(); ctx.arc(100,100,45,0,Math.PI*2); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(100,0); ctx.lineTo(100,200); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(0,100); ctx.lineTo(200,100); ctx.stroke();
 
@@ -542,7 +555,6 @@ function drawRadar() {
       ctx.fill();
     }
   });
-
   ctx.fillStyle = 'rgba(255,0,0,0.5)';
   ENEMIES.forEach(e => {
     ctx.beginPath();
@@ -551,7 +563,8 @@ function drawRadar() {
   });
 }
 
-// --- INIT ---
+// --- INIT & MENU ---
+
 window.setLevel = (idx, el) => {
   GAME.levelIdx = idx;
   document.querySelectorAll('.level-opt').forEach(o => o.classList.remove('active'));
@@ -563,17 +576,17 @@ window.startGame = (mode) => {
   GAME.active = true;
   GAME.score = 0;
   
-  document.getElementById('menu-screen').style.display = 'none';
+  // Hide Menu, Show HUD
+  document.getElementById('menu-screen').style.opacity = 0;
+  setTimeout(() => document.getElementById('menu-screen').style.display = 'none', 500);
   document.getElementById('game-ui').style.display = 'block';
   if(audioCtx.state === 'suspended') audioCtx.resume();
 
-  // Load Level
   clearLevel();
   if(GAME.levelIdx === 0) { createNebulaLevel(); document.getElementById('level-ind').innerText = "SECTOR: NEBULA"; }
   else if(GAME.levelIdx === 1) { createCityLevel(); document.getElementById('level-ind').innerText = "SECTOR: CYBER CITY"; }
   else { createAsteroidLevel(); document.getElementById('level-ind').innerText = "SECTOR: ASTEROID BELT"; }
 
-  // Spawn Players
   PLAYERS.forEach(p => scene.remove(p.mesh));
   PLAYERS.length = 0;
   
@@ -588,8 +601,7 @@ window.startGame = (mode) => {
   const notify = document.getElementById('center-notify');
   notify.innerText = "COMBAT STARTED";
   notify.style.opacity = 1;
-  notify.style.transform = "scale(1)";
-  setTimeout(() => { notify.style.opacity = 0; notify.style.transform = "scale(1.2)"; }, 2000);
+  setTimeout(() => notify.style.opacity = 0, 2000);
 };
 
 // Render Loop
@@ -597,8 +609,46 @@ const clock = new THREE.Clock();
 function animate() {
   requestAnimationFrame(animate);
   const dt = clock.getDelta();
+  const time = Date.now() * 0.001;
+
   update(dt);
-  // Use composer for Bloom
+
+  // --- MENU ANIMATION ---
+  if(!GAME.active) {
+    // Rotate the Quantum Core
+    menuCore.rotation.x = time * 0.5;
+    menuCore.rotation.y = time * 0.3;
+    
+    // Pulse effect
+    const scale = 1 + Math.sin(time * 2) * 0.1;
+    menuCore.scale.set(scale, scale, scale);
+
+    // Drift Camera in Menu
+    camera.position.x = Math.sin(time * 0.1) * 20;
+    camera.position.z = 20 + Math.cos(time * 0.1) * 10;
+    camera.position.y = 5 + Math.sin(time * 0.2) * 2;
+    camera.lookAt(0, 0, 0);
+    
+    // Keep Background Particles moving
+    const positions = stars.geometry.attributes.position.array;
+    for(let i=1; i<positions.length; i+=3) {
+        positions[i] -= 0.05;
+        if(positions[i] < -50) positions[i] = 50;
+    }
+    stars.geometry.attributes.position.needsUpdate = true;
+
+    // Update Fog for Menu (Nebula Look)
+    scene.fog.color.setHex(0x110022);
+    scene.background = new THREE.Color(0x050010);
+  } 
+  // --- GAME CAMERA LOGIC ---
+  else {
+    // Lerp to Game View
+    const targetPos = new THREE.Vector3(0, 35, 35);
+    camera.position.lerp(targetPos, 0.05);
+    camera.lookAt(0, 0, 0);
+  }
+
   composer.render();
 }
 

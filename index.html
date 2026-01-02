@@ -56,6 +56,28 @@
     text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
     pointer-events: none; z-index: 20;
   }
+
+  /* --- CAMERA BUTTON --- */
+  #cam-toggle-btn {
+    pointer-events: auto; /* Enable clicks */
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #0ff;
+    padding: 8px 16px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.8rem;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: 0.3s;
+    text-transform: uppercase;
+    clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%);
+  }
+  #cam-toggle-btn:hover {
+    background: rgba(0, 255, 255, 0.2);
+    box-shadow: 0 0 15px #0ff;
+    border-color: #0ff;
+    color: #fff;
+  }
   
   /* --- MENU SCREEN --- */
   #menu-screen { 
@@ -120,7 +142,8 @@
       <div class="hp-bar-bg"><div id="p1-hp" class="hp-bar-fill fill-p1"></div></div>
     </div>
     
-    <div id="center-notify">WAVE START</div>
+    <!-- Camera Toggle Button -->
+    <button id="cam-toggle-btn" onclick="toggleCameraMode()">CAM: FOLLOW</button>
     
     <div class="player-hud" id="p2-hud-container" style="display:none; align-items:flex-end;">
       <div class="p2-label">CRIMSON WARRIOR</div>
@@ -178,13 +201,23 @@ composer.addPass(renderScene);
 composer.addPass(bloomPass);
 
 // --- GAME STATE ---
-const GAME = { active: false, mode: 1, levelIdx: 0, score: 0, bossSpawned: false };
+const GAME = { active: false, mode: 1, levelIdx: 0, score: 0, bossSpawned: false, camMode: 'follow' };
 const PLAYERS = [];
 const BULLETS = [];
 const ENEMIES = [];
 const PARTICLES = [];
 const LEVEL_OBJECTS = [];
 let boss = null;
+
+// --- FREE CAMERA VARIABLES ---
+const freeCam = {
+  theta: 0,
+  phi: Math.PI / 3,
+  radius: 50,
+  target: new THREE.Vector3(0,0,0),
+  isDragging: false,
+  previousMouse: { x: 0, y: 0 }
+};
 
 // --- ASSETS ---
 const MODEL_URL = "https://quantum-clash.vercel.app/assets/models/RobotExpressive.glb";
@@ -654,7 +687,6 @@ class CrimsonNebulaTitan {
             piece.position.x += (Math.random()-0.5)*10;
             piece.position.y += Math.random()*10;
             scene.add(piece);
-            // Simple animation for debris could be added here
         }
 
         setTimeout(() => {
@@ -952,6 +984,69 @@ function showNotification(text) {
     }, 2000);
 }
 
+// --- FREE CAMERA CONTROLS LOGIC ---
+
+window.toggleCameraMode = () => {
+    if(GAME.camMode === 'follow') {
+        GAME.camMode = 'free';
+        document.getElementById('cam-toggle-btn').innerText = "CAM: FREE";
+        document.getElementById('cam-toggle-btn').style.color = "#f0f";
+        document.getElementById('cam-toggle-btn').style.borderColor = "#f0f";
+        showNotification("CAMERA MODE: FREE");
+        
+        // Initialize free cam pos to current cam pos to prevent jump
+        const pos = camera.position;
+        freeCam.radius = pos.length();
+        freeCam.phi = Math.acos(pos.y / freeCam.radius);
+        freeCam.theta = Math.atan2(pos.x, pos.z);
+        
+    } else {
+        GAME.camMode = 'follow';
+        document.getElementById('cam-toggle-btn').innerText = "CAM: FOLLOW";
+        document.getElementById('cam-toggle-btn').style.color = "#0ff";
+        document.getElementById('cam-toggle-btn').style.borderColor = "rgba(255,255,255,0.3)";
+        showNotification("CAMERA MODE: LOCKED");
+    }
+};
+
+// Mouse Drag for Orbit
+document.addEventListener('mousedown', (e) => {
+    if(GAME.active && GAME.camMode === 'free' && e.button === 2) {
+        freeCam.isDragging = true;
+        freeCam.previousMouse = { x: e.clientX, y: e.clientY };
+    }
+});
+
+document.addEventListener('mouseup', () => {
+    freeCam.isDragging = false;
+});
+
+document.addEventListener('mousemove', (e) => {
+    if(freeCam.isDragging) {
+        const deltaX = e.clientX - freeCam.previousMouse.x;
+        const deltaY = e.clientY - freeCam.previousMouse.y;
+
+        freeCam.theta -= deltaX * 0.005;
+        freeCam.phi -= deltaY * 0.005;
+
+        // Clamp vertical rotation to prevent flipping
+        freeCam.phi = Math.max(0.1, Math.min(Math.PI / 2 - 0.1, freeCam.phi));
+
+        freeCam.previousMouse = { x: e.clientX, y: e.clientY };
+    }
+});
+
+document.addEventListener('wheel', (e) => {
+    if(GAME.active && GAME.camMode === 'free') {
+        freeCam.radius += e.deltaY * 0.05;
+        freeCam.radius = Math.max(10, Math.min(100, freeCam.radius));
+    }
+});
+
+// Prevent context menu on right click for better cam control
+document.addEventListener('contextmenu', event => event.preventDefault());
+
+
 // --- INIT & MENU ---
 
 window.setLevel = (idx, el) => {
@@ -1022,36 +1117,49 @@ function animate() {
     stars.geometry.attributes.position.needsUpdate = true;
   } 
   else {
-    // GAMEPLAY CAMERA: Follow Player
-    let targetPlayer = PLAYERS[0];
-    if(targetPlayer.dead && PLAYERS[1]) targetPlayer = PLAYERS[1];
-    
-    if(targetPlayer) {
-        const pPos = targetPlayer.mesh.position;
+    // GAMEPLAY CAMERA
+    if (GAME.camMode === 'free') {
+        // Calculate position from spherical coordinates
+        camera.position.x = freeCam.radius * Math.sin(freeCam.phi) * Math.sin(freeCam.theta);
+        camera.position.y = freeCam.radius * Math.cos(freeCam.phi);
+        camera.position.z = freeCam.radius * Math.sin(freeCam.phi) * Math.cos(freeCam.theta);
         
-        // Dynamic Camera: Follow player from behind/above
-        // Offset: Back 25 units, Up 20 units
-        const offset = new THREE.Vector3(0, 25, -25); 
+        // Look at the center of the arena (or Boss if active)
+        const target = (boss && !boss.dead) ? boss.mesh.position : new THREE.Vector3(0,0,0);
+        camera.lookAt(target);
+    } 
+    else {
+        // Follow Mode (Existing Logic)
+        let targetPlayer = PLAYERS[0];
+        if(targetPlayer.dead && PLAYERS[1]) targetPlayer = PLAYERS[1];
         
-        // Calculate desired camera position
-        // We don't want the camera to snap instantly, we lerp (smooth)
-        // Note: The player rotates, so strictly "behind" changes. 
-        // For a top-down shooter feel, we usually keep the camera fixed relative to the world axes 
-        // OR we keep it strictly behind the player. Let's do strictly behind for cinematic feel.
-        
-        // Create a rotation matrix based on player facing
-        const playerRotation = targetPlayer.mesh.rotation.y;
-        offset.applyAxisAngle(new THREE.Vector3(0,1,0), playerRotation);
-        
-        const desiredPos = pPos.clone().add(offset);
-        
-        // If 2 player, try to fit both (simplified: just follow P1 for now)
-        camera.position.lerp(desiredPos, 0.1);
-        
-        // Look at slightly ahead of player
-        const lookAtOffset = new THREE.Vector3(0, 0, -10);
-        lookAtOffset.applyAxisAngle(new THREE.Vector3(0,1,0), playerRotation);
-        camera.lookAt(pPos.clone().add(lookAtOffset));
+        if(targetPlayer) {
+            const pPos = targetPlayer.mesh.position;
+            
+            // Dynamic Camera: Follow player from behind/above
+            // Offset: Back 25 units, Up 20 units
+            const offset = new THREE.Vector3(0, 25, -25); 
+            
+            // Calculate desired camera position
+            // We don't want the camera to snap instantly, we lerp (smooth)
+            // Note: The player rotates, so strictly "behind" changes. 
+            // For a top-down shooter feel, we usually keep the camera fixed relative to the world axes 
+            // OR we keep it strictly behind the player. Let's do strictly behind for cinematic feel.
+            
+            // Create a rotation matrix based on player facing
+            const playerRotation = targetPlayer.mesh.rotation.y;
+            offset.applyAxisAngle(new THREE.Vector3(0,1,0), playerRotation);
+            
+            const desiredPos = pPos.clone().add(offset);
+            
+            // If 2 player, try to fit both (simplified: just follow P1 for now)
+            camera.position.lerp(desiredPos, 0.1);
+            
+            // Look at slightly ahead of player
+            const lookAtOffset = new THREE.Vector3(0, 0, -10);
+            lookAtOffset.applyAxisAngle(new THREE.Vector3(0,1,0), playerRotation);
+            camera.lookAt(pPos.clone().add(lookAtOffset));
+        }
     }
   }
 

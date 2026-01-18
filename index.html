@@ -2,24 +2,43 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- Google Search Console Verification -->
+<!-- Google Search Console Verification (Preserved) -->
 <meta name="google-site-verification" content="NWYhO8_jo2W2cxCuFWPwsWzRMYj82YO8MvpwXAHDBHw" />
 
 <title>QuantumClash 3D: Titan Protocol - Customization Edition</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+
 <style>
+  /* --- GLOBAL & RESET --- */
   body { margin:0; overflow:hidden; background:#000; font-family:'Orbitron', sans-serif; color:white; user-select:none; }
   
+  /* Loading Overlay */
+  #loading-screen {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: #000; z-index: 9999; display: flex; flex-direction: column;
+    justify-content: center; align-items: center; transition: opacity 0.5s;
+  }
+  .loader {
+    width: 50px; height: 50px; border: 5px solid #333;
+    border-top: 5px solid #0ff; border-radius: 50%;
+    animation: spin 1s linear infinite; margin-bottom: 20px;
+  }
+  @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
   /* --- CINEMATIC HUD --- */
-  #game-ui { position: absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; display:none; 
-    box-shadow: inset 0 0 100px rgba(0,0,0,0.8); z-index: 10; }
+  #game-ui { 
+    position: absolute; top:0; left:0; width:100%; height:100%; 
+    pointer-events:none; display:none; 
+    box-shadow: inset 0 0 100px rgba(0,0,0,0.8); z-index: 10; 
+  }
   
   .hud-top { 
     position: absolute; top:0; width:100%; height: 80px; 
     display:flex; justify-content:space-between; align-items: center; 
     padding:0 40px; box-sizing:border-box; 
-    background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
+    background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent);
   }
   
   .player-hud { display:flex; flex-direction:column; width: 250px; }
@@ -28,9 +47,8 @@
   
   .hp-bar-bg { width:100%; height:10px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.3); transform: skewX(-20deg); overflow:hidden; }
   .hp-bar-fill { height:100%; width:100%; transition:width 0.2s cubic-bezier(0.1, 0.7, 1.0, 0.1); }
-  /* Dynamic class for player 1 customization */
-  .fill-p1 { background: linear-gradient(90deg, #00ffff, #0088ff); box-shadow: 0 0 15px #00ffff; }
   
+  .fill-p1 { background: linear-gradient(90deg, #00ffff, #0088ff); box-shadow: 0 0 15px #00ffff; }
   .fill-p2 { background: linear-gradient(90deg, #ff0000, #ff8800); box-shadow: 0 0 15px #ff0000; }
   .fill-boss { background: linear-gradient(90deg, #800000, #ff0000); box-shadow: 0 0 20px #ff0000; }
 
@@ -41,18 +59,24 @@
   @keyframes slideDown { from { top: -50px; opacity: 0; } to { top: 60px; opacity: 1; } }
   .boss-name { color: #ff3333; font-weight: 900; letter-spacing: 4px; text-shadow: 0 0 10px red; margin-bottom: 5px; }
   
-  #center-notify { position:absolute; top:40%; width:100%; text-align:center; font-size:3rem; 
+  #center-notify { 
+    position:absolute; top:40%; width:100%; text-align:center; font-size:3rem; 
     text-shadow: 0 0 30px rgba(255,255,255,0.8); letter-spacing: 10px; 
-    opacity:0; transition: opacity 0.5s; transform: scale(1); pointer-events: none;}
+    opacity:0; transition: opacity 0.5s; transform: scale(1); pointer-events: none;
+  }
   
-  #radar-box { position:absolute; bottom:30px; right:30px; width:150px; height:150px; 
+  #radar-box { 
+    position:absolute; bottom:30px; right:30px; width:150px; height:150px; 
     border: 2px solid rgba(0, 255, 0, 0.5); border-radius: 50%; 
     background: radial-gradient(circle, rgba(0,50,0,0.4) 0%, rgba(0,0,0,0.8) 100%);
     box-shadow: 0 0 20px rgba(0,255,0,0.2); overflow:hidden; backdrop-filter: blur(2px);
   }
   #radar-canvas { width:100%; height:100%; mix-blend-mode: screen; }
 
-  #level-ind { position:absolute; bottom:30px; left:30px; color:#fff; font-size:1.2rem; text-shadow:0 0 10px white; }
+  #level-ind { 
+    position:absolute; bottom:30px; left:30px; color:#fff; font-size:1.2rem; 
+    text-shadow:0 0 10px white; text-transform: uppercase;
+  }
 
   #producer-credit {
     position: absolute; bottom: 10px; width: 100%; text-align: center;
@@ -85,14 +109,14 @@
   /* --- MENU SCREEN --- */
   #menu-screen { 
     position:fixed; top:0; left:0; width:100%; height:100%; 
-    background: rgba(0, 0, 0, 0.3); 
-    backdrop-filter: blur(4px); 
+    background: rgba(0, 0, 0, 0.6); 
+    backdrop-filter: blur(5px); 
     z-index:100; 
     display:flex; flex-direction:column; align-items:center; justify-content:center; pointer-events:auto; 
     transition: opacity 0.5s;
   }
   
-  h1 { font-size:5rem; margin:0; background: linear-gradient(to right, #0ff, #f0f); -webkit-background-clip: text; color:transparent; text-shadow: 0 0 50px rgba(0,255,255,0.5); text-align: center;}
+  h1 { font-size:4rem; margin:0; background: linear-gradient(to right, #0ff, #f0f); -webkit-background-clip: text; color:transparent; text-shadow: 0 0 50px rgba(0,255,255,0.5); text-align: center; line-height: 1.2;}
   
   .menu-btn {
     background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); 
@@ -101,18 +125,18 @@
     backdrop-filter: blur(5px); clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%);
   }
   .menu-btn:hover { background: #0ff; color: #000; border-color: #0ff; box-shadow: 0 0 30px #0ff; transform: translateY(-3px); }
-  .menu-btn:disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
+  .menu-btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; border-color: #555; color: #555;}
 
   .level-select { display:flex; gap:15px; margin-bottom:30px; }
-  .level-opt { padding:8px 15px; border:1px solid #555; cursor:pointer; opacity:0.5; transition:0.3s; font-size: 0.9rem; }
-  .level-opt:hover, .level-opt.active { opacity:1; border-color:#0ff; background:rgba(0,255,255,0.1); box-shadow:0 0 15px #0ff; }
+  .level-opt { padding:8px 15px; border:1px solid #555; cursor:pointer; opacity:0.5; transition:0.3s; font-size: 0.9rem; background: rgba(0,0,0,0.5); }
+  .level-opt:hover, .level-opt.active { opacity:1; border-color:#0ff; background:rgba(0,255,255,0.1); box-shadow:0 0 15px #0ff; color: #fff; }
 
   /* --- CUSTOMIZATION UI --- */
   #custom-screen {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px);
+    background: rgba(0, 0, 0, 0.9); backdrop-filter: blur(10px);
     z-index: 150;
-    display: none; /* Hidden by default */
+    display: none;
     pointer-events: auto;
   }
 
@@ -121,13 +145,13 @@
   }
 
   .custom-preview {
-    flex: 1; /* Left side: 3D View */
+    flex: 1;
     position: relative;
     background: radial-gradient(circle at center, #111, #000);
   }
 
   .custom-controls {
-    width: 400px; /* Right side: UI */
+    width: 400px;
     background: rgba(10, 10, 15, 0.95);
     border-left: 2px solid #333;
     padding: 20px;
@@ -142,11 +166,10 @@
     display: flex; justify-content: space-between; align-items: center;
     border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 10px;
   }
-
   .custom-title { font-size: 1.5rem; color: #0ff; text-transform: uppercase; letter-spacing: 2px; }
   
-  .custom-section { border: 1px solid #333; padding: 15px; border-radius: 5px; }
-  .custom-section h3 { margin: 0 0 15px 0; font-size: 1rem; color: #aaa; text-transform: uppercase; letter-spacing: 1px; }
+  .custom-section { border: 1px solid #333; padding: 15px; border-radius: 5px; background: rgba(255,255,255,0.02); }
+  .custom-section h3 { margin: 0 0 15px 0; font-size: 1rem; color: #aaa; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #333; padding-bottom: 5px;}
 
   /* Form Elements */
   .option-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
@@ -154,7 +177,7 @@
   
   .color-swatch-group { display: flex; gap: 5px; }
   .color-swatch {
-    width: 25px; height: 25px; border: 1px solid #555; cursor: pointer; transition: 0.2s;
+    width: 25px; height: 25px; border: 1px solid #555; cursor: pointer; transition: 0.2s; border-radius: 3px;
   }
   .color-swatch:hover { transform: scale(1.1); }
   .color-swatch.active { border: 2px solid #fff; box-shadow: 0 0 10px white; }
@@ -166,8 +189,9 @@
   select { width: 150px; }
   
   .back-btn {
-    background: #555; color: white; border: none; padding: 5px 15px; font-family: inherit; cursor: pointer;
+    background: #555; color: white; border: none; padding: 5px 15px; font-family: inherit; cursor: pointer; text-transform: uppercase; letter-spacing: 1px;
   }
+  .back-btn:hover { background: #888; }
 
   .action-btns { margin-top: auto; display: flex; gap: 10px; }
   .start-btn { flex: 1; background: #0f0; color: #000; border: none; padding: 15px; font-size: 1.2rem; font-weight: bold; cursor: pointer; text-transform: uppercase; clip-path: polygon(5% 0, 100% 0, 100% 100%, 0 100%, 0 20%); }
@@ -175,15 +199,28 @@
 
 </style>
 
-<!-- Import Map -->
-<!-- removed importmap because loading modules via file:// or some Chrome setups can fail; use direct module URLs instead -->
+<!-- Import Map for clean Three.js loading -->
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
 
 </head>
 <body>
 
+<!-- LOADING SCREEN -->
+<div id="loading-screen">
+  <div class="loader"></div>
+  <div style="color: #0ff; letter-spacing: 3px;">INITIALIZING QUANTUM ENGINE...</div>
+</div>
+
 <!-- MENU -->
-<div id="menu-screen">
-  <h1>QUANTUM CLASH<br><span style="font-size:2rem; color:#fff;">TITAN PROTOCOL</span></h1>
+<div id="menu-screen" style="display:none;">
+  <h1>QUANTUM CLASH<br><span style="font-size:2rem; color:#fff; letter-spacing: 5px;">TITAN PROTOCOL</span></h1>
   
   <div class="level-select">
     <div class="level-opt active" onclick="setLevel(0, this)">NEBULA</div>
@@ -195,9 +232,9 @@
   <button class="menu-btn" onclick="startGame(1)">1 PLAYER</button>
   <button class="menu-btn" onclick="startGame(2)">2 PLAYER CO-OP</button>
   
-  <div style="margin-top:20px; color:#ccc; font-size:0.8rem; text-shadow:0 0 5px black; text-align:center;">
-    WASD to Move | SPACE to Shoot (P1)<br>
-    ARROWS to Move | ENTER to Shoot (P2)<br>
+  <div style="margin-top:30px; color:#ccc; font-size:0.8rem; text-shadow:0 0 5px black; text-align:center; line-height: 1.6;">
+    <span style="color:#0ff; font-weight:bold;">P1:</span> WASD to Move | SPACE to Shoot<br>
+    <span style="color:#f00; font-weight:bold;">P2:</span> ARROWS to Move | ENTER to Shoot<br>
     <span style="color:#ff5555;">WARNING: Boss spawns at 500 Points</span>
   </div>
 </div>
@@ -206,11 +243,7 @@
 <div id="custom-screen">
   <div class="custom-layout">
     <div class="custom-preview" id="custom-preview-container">
-        <!-- 3D Canvas renders here -->
-        <div style="position:absolute; top:20px; left:20px; color:#0ff; font-weight:bold;">PREVIEW MODE</div>
-        <div style="position:absolute; bottom:20px; width:100%; text-align:center; color:#aaa; font-size:0.8rem;">
-            Drag to Rotate | Scroll to Zoom
-        </div>
+        <div style="position:absolute; top:20px; left:20px; color:#0ff; font-weight:bold; background:rgba(0,0,0,0.5); padding:5px;">PREVIEW MODE</div>
     </div>
     <div class="custom-controls">
         <div class="custom-header">
@@ -221,21 +254,14 @@
         <!-- 1. Body & Material -->
         <div class="custom-section">
             <h3>1. Visual Appearance</h3>
-            
             <div class="option-row">
                 <span class="option-label">Armor Color</span>
-                <div class="color-swatch-group" id="swatch-armor">
-                    <!-- Generated via JS -->
-                </div>
+                <div class="color-swatch-group" id="swatch-armor"></div>
             </div>
-
             <div class="option-row">
                 <span class="option-label">Neon Glow</span>
-                <div class="color-swatch-group" id="swatch-neon">
-                    <!-- Generated via JS -->
-                </div>
+                <div class="color-swatch-group" id="swatch-neon"></div>
             </div>
-
             <div class="option-row">
                 <span class="option-label">Material</span>
                 <select id="opt-material" onchange="updatePreview()">
@@ -244,7 +270,6 @@
                     <option value="matte">Matte Flat</option>
                 </select>
             </div>
-
             <div class="option-row">
                 <span class="option-label">Armor Bulk</span>
                 <input type="range" id="opt-bulk" min="0.8" max="1.5" step="0.1" value="1.0" oninput="updatePreview()">
@@ -255,13 +280,12 @@
         <div class="custom-section">
             <h3>2. Head & Helmet</h3>
             <div class="option-row">
-                <span class="option-label">Animation / Pose</span>
+                <span class="option-label">Animation</span>
                 <select id="opt-anim" onchange="updatePreview()">
-                    <option value="Idle">Battle Ready (Idle)</option>
-                    <option value="Walking">Patrol (Walk)</option>
-                    <option value="Running">Assault (Run)</option>
-                    <option value="Dance">Victory (Dance)</option>
-                    <option value="Sitting">Relaxed (Sit)</option>
+                    <option value="Idle">Idle</option>
+                    <option value="Walking">Walk</option>
+                    <option value="Running">Run</option>
+                    <option value="Dance">Dance</option>
                     <option value="Death">Defeat</option>
                 </select>
             </div>
@@ -285,7 +309,6 @@
                     <option value="none">None</option>
                     <option value="thrusters">Ion Thrusters</option>
                     <option value="wings">Solar Wings</option>
-                    <option value="tanks">Oxygen Tanks</option>
                 </select>
             </div>
             <div class="option-row">
@@ -303,9 +326,7 @@
             <h3>4. Weapon FX</h3>
             <div class="option-row">
                 <span class="option-label">Projectile Color</span>
-                <div class="color-swatch-group" id="swatch-weapon">
-                    <!-- Generated via JS -->
-                </div>
+                <div class="color-swatch-group" id="swatch-weapon"></div>
             </div>
         </div>
 
@@ -349,12 +370,12 @@
 </div>
 
 <script type="module">
-import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
-import { GLTFLoader } from 'https://unpkg.com/three@0.160.0/examples/jsm/loaders/GLTFLoader.js';
-import { EffectComposer } from 'https://unpkg.com/three@0.160.0/examples/jsm/postprocessing/EffectComposer.js';
-import { RenderPass } from 'https://unpkg.com/three@0.160.0/examples/jsm/postprocessing/RenderPass.js';
-import { UnrealBloomPass } from 'https://unpkg.com/three@0.160.0/examples/jsm/postprocessing/UnrealBloomPass.js';
-import { OrbitControls } from 'https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js';
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 // --- SETUP ---
 const scene = new THREE.Scene();
@@ -366,6 +387,7 @@ camera.lookAt(0, 0, 0);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
 renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Performance opt
 renderer.toneMapping = THREE.ReinhardToneMapping;
 renderer.shadowMap.enabled = true;
 document.body.appendChild(renderer.domElement);
@@ -373,8 +395,8 @@ document.body.appendChild(renderer.domElement);
 // --- POST PROCESSING ---
 const renderScene = new RenderPass(scene, camera);
 const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
-bloomPass.threshold = 0;
-bloomPass.strength = 2.0; 
+bloomPass.threshold = 0.2;
+bloomPass.strength = 1.5; 
 bloomPass.radius = 0.5;
 
 const composer = new EffectComposer(renderer);
@@ -382,8 +404,7 @@ composer.addPass(renderScene);
 composer.addPass(bloomPass);
 
 // --- GAME STATE ---
-const GAME = { active: false, mode: 1, levelIdx: 0, score: 0, bossSpawned: false, camMode: 'follow', state: 'menu' };
-// 'state': 'menu', 'customize', 'playing'
+const GAME = { active: false, mode: 1, levelIdx: 0, score: 0, bossSpawned: false, camMode: 'follow', state: 'loading' };
 
 const PLAYERS = [];
 const BULLETS = [];
@@ -422,15 +443,41 @@ let previewRobot = null;
 let previewMixer = null;
 let previewActions = {};
 let previewControls = null;
-let customDronesGroup = null; // Used for both preview and game player
+let customDronesGroup = null;
 
-// --- ASSETS ---
+// --- ASSET MANAGEMENT ---
 const MODEL_URL = "https://quantum-clash.vercel.app/assets/models/RobotExpressive.glb";
-let baseRobotModel;
+let baseRobotModel = null; // Holds the Scene
+let robotAnimations = null; // Holds the AnimationClips
+
+// Helper: Create a fallback robot if GLTF fails
+function createFallbackRobot() {
+    const group = new THREE.Group();
+    const mat = new THREE.MeshStandardMaterial({color: 0x888888, roughness: 0.3, metalness: 0.8});
+    
+    const torso = new THREE.Mesh(new THREE.BoxGeometry(1, 1.5, 0.6), mat);
+    torso.position.y = 1.25;
+    group.add(torso);
+    
+    const head = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.6, 0.6), mat);
+    head.position.y = 2.3;
+    group.add(head);
+    
+    const limbGeo = new THREE.BoxGeometry(0.3, 1.2, 0.3);
+    const legL = new THREE.Mesh(limbGeo, mat); legL.position.set(-0.3, 0.6, 0); group.add(legL);
+    const legR = new THREE.Mesh(limbGeo, mat); legR.position.set(0.3, 0.6, 0); group.add(legR);
+    const armL = new THREE.Mesh(limbGeo, mat); armL.position.set(-0.8, 1.4, 0); group.add(armL);
+    const armR = new THREE.Mesh(limbGeo, mat); armR.position.set(0.8, 1.4, 0); group.add(armR);
+    
+    group.traverse(c => { c.castShadow = true; c.receiveShadow = true; });
+    return group;
+}
 
 const loader = new GLTFLoader();
 loader.load(MODEL_URL, (gltf) => {
   baseRobotModel = gltf.scene;
+  robotAnimations = gltf.animations;
+  
   baseRobotModel.traverse(c => {
     if (c.isMesh) {
       c.castShadow = true;
@@ -438,24 +485,56 @@ loader.load(MODEL_URL, (gltf) => {
     }
   });
   
-  // Enable customize button once loaded
-  document.getElementById('btn-customize').disabled = false;
-  document.getElementById('btn-customize').innerText = "CUSTOMIZE";
-  
-  // Setup Preview Mixer immediately
-  previewMixer = new THREE.AnimationMixer(baseRobotModel);
-  gltf.animations.forEach(clip => {
-      previewActions[clip.name] = previewMixer.clipAction(clip);
-  });
+  onAssetsLoaded();
   
 }, undefined, (err) => {
-    console.error("Model failed to load");
+    console.warn("GLTF Model failed to load. Using Fallback Robot.", err);
+    baseRobotModel = createFallbackRobot();
+    robotAnimations = []; // No animations for fallback
+    onAssetsLoaded();
 });
+
+function onAssetsLoaded() {
+    // Remove loading screen
+    const loadingScreen = document.getElementById('loading-screen');
+    loadingScreen.style.opacity = 0;
+    setTimeout(() => loadingScreen.remove(), 500);
+
+    // Show menu
+    GAME.state = 'menu';
+    document.getElementById('menu-screen').style.display = 'flex';
+    
+    // Enable customize
+    const btn = document.getElementById('btn-customize');
+    btn.disabled = false;
+    btn.innerText = "CUSTOMIZE";
+    
+    // Setup Preview Mixer (works for both GLTF and Fallback)
+    previewRobot = baseRobotModel.clone();
+    previewMixer = new THREE.AnimationMixer(previewRobot);
+    if(robotAnimations && robotAnimations.length) {
+        robotAnimations.forEach(clip => {
+            previewActions[clip.name] = previewMixer.clipAction(clip);
+        });
+    } else {
+        // Create a simple "Idle" bobbing animation manually if no clips
+        const bobTrack = new THREE.NumberKeyframeTrack('.position[y]', [0, 1, 2], [0, 0.1, 0]);
+        const bobClip = new THREE.AnimationClip('Idle', 2, [bobTrack]);
+        previewActions['Idle'] = previewMixer.clipAction(bobClip);
+        previewActions['Running'] = previewMixer.clipAction(bobClip);
+        // Map other anims to idle for fallback
+        ['Walking', 'Dance', 'Death'].forEach(name => previewActions[name] = previewActions['Idle']);
+    }
+    
+    // Init background visuals
+    initBackground();
+}
 
 // --- AUDIO ---
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 const Sound = {
   play: (freq, type, duration, vol=0.1) => {
+    if(audioCtx.state === 'suspended') audioCtx.resume();
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
     osc.type = type;
@@ -478,21 +557,28 @@ const Sound = {
   }
 };
 
-// --- BACKGROUND ASSETS ---
-const starGeo = new THREE.BufferGeometry();
-const starCount = 3000;
-const starPos = [];
-for(let i=0; i<starCount*3; i++) starPos.push((Math.random()-0.5)*200, (Math.random()-0.5)*100, (Math.random()-0.5)*200);
-starGeo.setAttribute('position', new THREE.Float32BufferAttribute(starPos, 3));
-const stars = new THREE.Points(starGeo, new THREE.PointsMaterial({color:0xffffff, size:0.2, transparent:true, opacity:0.8}));
-scene.add(stars);
+// --- BACKGROUND ---
+let menuCore, stars;
+function initBackground() {
+    const starGeo = new THREE.BufferGeometry();
+    const starCount = 3000;
+    const starPos = [];
+    for(let i=0; i<starCount*3; i++) starPos.push((Math.random()-0.5)*200, (Math.random()-0.5)*100, (Math.random()-0.5)*200);
+    starGeo.setAttribute('position', new THREE.Float32BufferAttribute(starPos, 3));
+    stars = new THREE.Points(starGeo, new THREE.PointsMaterial({color:0xffffff, size:0.2, transparent:true, opacity:0.8}));
+    scene.add(stars);
 
-const coreGeo = new THREE.IcosahedronGeometry(3, 1);
-const coreMat = new THREE.MeshStandardMaterial({ color: 0x220044, emissive: 0xff00ff, emissiveIntensity: 2, wireframe: true });
-const menuCore = new THREE.Mesh(coreGeo, coreMat);
-scene.add(menuCore);
+    const coreGeo = new THREE.IcosahedronGeometry(3, 1);
+    const coreMat = new THREE.MeshStandardMaterial({ color: 0x220044, emissive: 0xff00ff, emissiveIntensity: 2, wireframe: true });
+    menuCore = new THREE.Mesh(coreGeo, coreMat);
+    scene.add(menuCore);
+    
+    // Set default background
+    scene.background = new THREE.Color(0x050010);
+    scene.fog.color.setHex(0x050010);
+}
 
-// --- CUSTOMIZATION UI SETUP ---
+// --- CUSTOMIZATION UI ---
 
 function setupColorSwatches(id, type) {
     const container = document.getElementById(id);
@@ -501,17 +587,14 @@ function setupColorSwatches(id, type) {
         div.className = 'color-swatch';
         div.style.backgroundColor = '#' + new THREE.Color(color).getHexString();
         div.onclick = () => {
-            // Active state visual
             Array.from(container.children).forEach(c => c.classList.remove('active'));
             div.classList.add('active');
-            
-            // Update data
             playerCustomData[type] = color;
             updatePreview();
         };
-        if(type === 'armor' && color === 0x222222) div.classList.add('active'); // Default
-        if(type === 'neon' && color === 0x00ffff) div.classList.add('active'); // Default
-        if(type === 'weapon' && color === 0x00ffff) div.classList.add('active'); // Default
+        if(type === 'armor' && color === 0x222222) div.classList.add('active'); 
+        if(type === 'neon' && color === 0x00ffff) div.classList.add('active'); 
+        if(type === 'weapon' && color === 0x00ffff) div.classList.add('active'); 
         container.appendChild(div);
     });
 }
@@ -525,7 +608,6 @@ window.openCustomize = () => {
     document.getElementById('menu-screen').style.display = 'none';
     document.getElementById('custom-screen').style.display = 'flex';
     
-    // Setup Preview Scene
     initPreviewRobot();
 };
 
@@ -534,11 +616,13 @@ window.closeCustomize = () => {
     document.getElementById('custom-screen').style.display = 'none';
     document.getElementById('menu-screen').style.display = 'flex';
     
-    // Cleanup Preview
     if(previewRobot) {
         scene.remove(previewRobot);
         previewRobot = null;
     }
+    // Reset Camera
+    camera.position.set(0, 5, 25);
+    camera.lookAt(0,0,0);
 };
 
 // --- PREVIEW ROBOT LOGIC ---
@@ -546,15 +630,12 @@ window.closeCustomize = () => {
 function initPreviewRobot() {
     if(!baseRobotModel) return;
     
-    // Create a clone specifically for preview
+    // Remove previous preview if any
+    if(previewRobot) scene.remove(previewRobot);
+
     previewRobot = baseRobotModel.clone();
-    previewRobot.position.set(0, 0, 0);
-    
-    // Remove from whereever it might have been
     scene.add(previewRobot);
 
-    // Setup orbit controls just for preview
-    // (We reuse the main renderer/scene, but move camera)
     camera.position.set(3, 2, 5);
     camera.lookAt(0, 1, 0);
     
@@ -568,49 +649,32 @@ function initPreviewRobot() {
 function updatePreview() {
     if(!previewRobot) return;
 
-    // 1. Apply Material & Color
     const isHolo = playerCustomData.material === 'holographic';
     const isMatte = playerCustomData.material === 'matte';
     
     previewRobot.traverse(c => {
         if(c.isMesh) {
-            c.material = c.material.clone(); // Ensure unique material
-            
+            c.material = c.material.clone(); 
             c.material.color.setHex(playerCustomData.armorColor);
             c.material.emissive.setHex(playerCustomData.neonColor);
             c.material.emissiveIntensity = isHolo ? 0.2 : 0.8;
             c.material.roughness = isMatte ? 0.9 : (isHolo ? 0.1 : 0.2);
             c.material.metalness = isMatte ? 0.1 : 0.9;
             c.material.wireframe = isHolo;
-            
-            // Add Decal (Stripe on chest)
-            if(c.name === "RobotExpressive_Head" || c.name.includes("body")) {
-               // Simple procedural logic: if it's the main body, we might add a stripe
-               // For simplicity in this model, we just apply the color to all parts
-            }
         }
     });
 
-    // 2. Apply Bulk
     previewRobot.scale.setScalar(playerCustomData.bulk);
 
-    // 3. Apply Accessories (Remove old, add new)
-    // Helper to remove by userData type
-    const removeOldParts = (type) => {
-        const toRemove = [];
-        previewRobot.traverse(c => {
-            if(c.userData.type === type) toRemove.push(c);
-        });
-        toRemove.forEach(c => {
-            if(c.parent) c.parent.remove(c);
-        });
-    };
-
     // --- CROWNS ---
-    removeOldParts('crown');
+    // Clear old
+    const toRemove = [];
+    previewRobot.traverse(c => { if(c.userData.type === 'crown') toRemove.push(c); });
+    toRemove.forEach(c => { if(c.parent) c.parent.remove(c); });
+
     if(playerCustomData.crown !== 'none') {
-        const head = findBone(previewRobot, "Head");
-        if(head) {
+        const headMesh = previewRobot.getObjectByName("RobotExpressive_Head") || previewRobot.children[1]; // Fallback index
+        if(headMesh) {
             const crownGroup = new THREE.Group();
             crownGroup.userData.type = 'crown';
             
@@ -632,20 +696,18 @@ function updatePreview() {
                 crownGroup.add(ant, bulb);
             }
             
-            // Attach to head bone approximate position (top of head mesh)
-            // Since RobotExpressive bones are deep, we attach to the mesh object 'RobotExpressive_Head' if possible or top group
-            const headMesh = previewRobot.getObjectByName("RobotExpressive_Head");
-            if(headMesh) {
-                crownGroup.position.set(0, 0.5, 0); 
-                headMesh.add(crownGroup);
-            }
+            crownGroup.position.set(0, 0.5, 0); 
+            headMesh.add(crownGroup);
         }
     }
 
     // --- JETPACKS ---
-    removeOldParts('jetpack');
+    toRemove.length = 0;
+    previewRobot.traverse(c => { if(c.userData.type === 'jetpack') toRemove.push(c); });
+    toRemove.forEach(c => { if(c.parent) c.parent.remove(c); });
+
     if(playerCustomData.jetpack !== 'none') {
-        const body = previewRobot.getObjectByName("RobotExpressive_Body"); // Approximation
+        const body = previewRobot.getObjectByName("RobotExpressive_Body") || previewRobot.children[0];
         if(body) {
             const packGroup = new THREE.Group();
             packGroup.userData.type = 'jetpack';
@@ -662,14 +724,16 @@ function updatePreview() {
                 const w = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.1, 0.5), mat);
                 packGroup.add(w);
             }
-            
             packGroup.position.set(0, 0.5, -0.6);
             body.add(packGroup);
         }
     }
 
     // --- DRONES ---
-    removeOldParts('drone');
+    toRemove.length = 0;
+    previewRobot.traverse(c => { if(c.userData.type === 'drone') toRemove.push(c); });
+    toRemove.forEach(c => { if(c.parent) c.parent.remove(c); });
+
     if(playerCustomData.drones !== 'none') {
         customDronesGroup = new THREE.Group();
         customDronesGroup.userData.type = 'drone';
@@ -687,74 +751,52 @@ function updatePreview() {
 
     // 4. Animation
     if(previewActions[playerCustomData.anim]) {
-        // Fade out all others
-        Object.values(previewActions).forEach(a => a.fadeOut(0.2));
+        Object.values(previewActions).forEach(a => a.stop());
         const current = previewActions[playerCustomData.anim];
         current.reset();
-        current.fadeIn(0.2);
         current.play();
     }
 }
+window.updatePreview = updatePreview; 
 
-function findBone(group, name) {
-    let result = null;
-    group.traverse(obj => {
-        if(obj.isBone && obj.name === name) result = obj;
-    });
-    return result;
-}
-
-window.updatePreview = updatePreview; // Expose to HTML
-
-// --- PLAYER CLASS (UPDATED FOR CUSTOMIZATION) ---
+// --- PLAYER CLASS ---
 
 class Player {
   constructor(id, color, startPos, isCustom = false) {
     this.id = id;
     this.color = new THREE.Color(color);
-    this.isCustom = isCustom; // If true, use playerCustomData
+    this.isCustom = isCustom;
     this.hp = 100;
     this.dead = false;
     
-    // Clone Model
     this.mesh = baseRobotModel ? baseRobotModel.clone() : new THREE.Mesh(new THREE.BoxGeometry(1,1,1), new THREE.MeshStandardMaterial({color:color}));
     
-    // Apply Customization if P1
     if(isCustom) {
         this.applyGameplayCustomization();
-        this.mixer = new THREE.AnimationMixer(this.mesh);
-        baseRobotModel.parent?.animations.forEach(clip => { // Inherit animations logic
-            // We actually need to find animations from the original gltf.
-            // Since 'baseRobotModel' is a clone, animations are lost on the clone.
-            // We need to access the global gltf animations. 
-            // Simplified: We will just loop anims from baseRobotModel if available or stored globally.
-        });
-        
-        // Re-fetching animations from the global resource
-        // (In a robust setup, we'd pass the gltf object. Here we rely on `previewActions` keys or raw gltf ref if we had it stored globally)
-        // Since we used `loader` locally, let's use a workaround: create a mixer and try to find clips from the original model's userData if we saved them.
-        // For this snippet, P2 gets no anim mixing, P1 gets static application of custom data.
     } else {
-        this.mesh.scale.set(1.5, 1.5, 1.5); // Standard P2 size
+        this.mesh.scale.set(1.5, 1.5, 1.5); 
+        // Default P2 coloring
+        this.mesh.traverse(c => {
+            if(c.isMesh) {
+                c.material = c.material.clone();
+                c.material.color.setHex(0xff0000);
+                c.material.emissive.setHex(0x550000);
+            }
+        });
     }
     
     this.mesh.position.copy(startPos);
     scene.add(this.mesh);
     
-    // Light
     this.light = new THREE.PointLight(this.isCustom ? playerCustomData.neonColor : this.color, 2, 15);
     this.mesh.add(this.light);
     
-    // Custom Parts Containers (for updates)
     this.drones = null;
     this.dronesAngle = 0;
   }
 
   applyGameplayCustomization() {
-      // 1. Scale (Bulk)
       this.mesh.scale.setScalar(playerCustomData.bulk);
-      
-      // 2. Materials
       const isHolo = playerCustomData.material === 'holographic';
       const isMatte = playerCustomData.material === 'matte';
       
@@ -770,45 +812,34 @@ class Player {
           }
       });
 
-      // 3. Accessories (Re-implementation for Gameplay Player)
-      // Note: We repeat logic from updatePreview but on the actual player mesh
-      // Ideally this is a shared function, but for clarity, I put it here.
-      
-      // Add Jetpack
-      if(playerCustomData.jetpack !== 'none') {
-           const body = this.mesh.getObjectByName("RobotExpressive_Body");
-           if(body) {
-               const packGroup = new THREE.Group();
-               let mat = new THREE.MeshStandardMaterial({color:0x555555, metalness:0.8});
-               let glowMat = new THREE.MeshBasicMaterial({color:playerCustomData.neonColor});
-               
-               const b = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1, 0.5), mat);
-               const l1 = new THREE.Mesh(new THREE.CircleGeometry(0.2), glowMat); l1.position.set(0, -0.5, 0.26); l1.rotation.x = Math.PI/2;
-               const l2 = l1.clone(); l2.position.set(0, -0.5, -0.26); l2.rotation.x = -Math.PI/2;
-               packGroup.add(b, l1, l2);
-               packGroup.position.set(0, 0.5, -0.6);
-               body.add(packGroup);
-           }
+      // Accessories (Copy logic from preview, simplified)
+      const body = this.mesh.getObjectByName("RobotExpressive_Body") || this.mesh.children[0];
+      if(playerCustomData.jetpack !== 'none' && body) {
+           const packGroup = new THREE.Group();
+           let mat = new THREE.MeshStandardMaterial({color:0x555555, metalness:0.8});
+           let glowMat = new THREE.MeshBasicMaterial({color:playerCustomData.neonColor});
+           const b = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1, 0.5), mat);
+           const l1 = new THREE.Mesh(new THREE.CircleGeometry(0.2), glowMat); l1.position.set(0, -0.5, 0.26); l1.rotation.x = Math.PI/2;
+           const l2 = l1.clone(); l2.position.set(0, -0.5, -0.26); l2.rotation.x = -Math.PI/2;
+           packGroup.add(b, l1, l2);
+           packGroup.position.set(0, 0.5, -0.6);
+           body.add(packGroup);
       }
       
-      // Add Crown
-      if(playerCustomData.crown !== 'none') {
-         const headMesh = this.mesh.getObjectByName("RobotExpressive_Head");
-         if(headMesh) {
-             const crownGroup = new THREE.Group();
-             let mat = new THREE.MeshStandardMaterial({color:0xff0000, emissive:0xff0000, emissiveIntensity:2});
-             if(playerCustomData.crown === 'horns') {
-                 const geo = new THREE.ConeGeometry(0.1, 1, 4);
-                 const h1 = new THREE.Mesh(geo, mat); h1.position.set(0.3, 0.8, 0); h1.rotation.z = -0.3;
-                 const h2 = new THREE.Mesh(geo, mat); h2.position.set(-0.3, 0.8, 0); h2.rotation.z = 0.3;
-                 crownGroup.add(h1, h2);
-             }
-             crownGroup.position.set(0, 0.5, 0);
-             headMesh.add(crownGroup);
+      const headMesh = this.mesh.getObjectByName("RobotExpressive_Head") || this.mesh.children[1];
+      if(playerCustomData.crown !== 'none' && headMesh) {
+         const crownGroup = new THREE.Group();
+         let mat = new THREE.MeshStandardMaterial({color:0xff0000, emissive:0xff0000, emissiveIntensity:2});
+         if(playerCustomData.crown === 'horns') {
+             const geo = new THREE.ConeGeometry(0.1, 1, 4);
+             const h1 = new THREE.Mesh(geo, mat); h1.position.set(0.3, 0.8, 0); h1.rotation.z = -0.3;
+             const h2 = new THREE.Mesh(geo, mat); h2.position.set(-0.3, 0.8, 0); h2.rotation.z = 0.3;
+             crownGroup.add(h1, h2);
          }
+         crownGroup.position.set(0, 0.5, 0);
+         headMesh.add(crownGroup);
       }
       
-      // Add Drones
       if(playerCustomData.drones !== 'none') {
           this.drones = new THREE.Group();
           const dMat = new THREE.MeshStandardMaterial({color:0x888888, emissive:playerCustomData.neonColor, emissiveIntensity:1});
@@ -819,21 +850,19 @@ class Player {
           this.mesh.add(this.drones);
       }
       
-      // 4. Update HUD Color
       const neonHex = '#' + new THREE.Color(playerCustomData.neonColor).getHexString();
       const armorHex = '#' + new THREE.Color(playerCustomData.armorColor).getHexString();
-      
       const p1Fill = document.getElementById('p1-hp');
-      p1Fill.style.background = `linear-gradient(90deg, ${neonHex}, ${armorHex})`;
-      p1Fill.style.boxShadow = `0 0 15px ${neonHex}`;
-      
-      document.getElementById('hud-p1-name').style.color = neonHex;
-      document.getElementById('hud-p1-name').style.textShadow = `0 0 10px ${neonHex}`;
+      if(p1Fill) {
+        p1Fill.style.background = `linear-gradient(90deg, ${neonHex}, ${armorHex})`;
+        p1Fill.style.boxShadow = `0 0 15px ${neonHex}`;
+        document.getElementById('hud-p1-name').style.color = neonHex;
+        document.getElementById('hud-p1-name').style.textShadow = `0 0 10px ${neonHex}`;
+      }
   }
 
   update(dt, input) {
     if(this.dead) return;
-    
     const speed = 20 * dt;
     let moving = false;
     
@@ -842,23 +871,17 @@ class Player {
     if(input.left) { this.mesh.position.x -= speed; moving = true; this.mesh.rotation.y = THREE.MathUtils.lerp(this.mesh.rotation.y, Math.PI/2, 0.2); }
     if(input.right) { this.mesh.position.x += speed; moving = true; this.mesh.rotation.y = THREE.MathUtils.lerp(this.mesh.rotation.y, -Math.PI/2, 0.2); }
 
-    // Bobbing animation
     if(moving) {
         const baseBob = Math.abs(Math.sin(Date.now() * 0.008)) * 0.5;
         this.mesh.position.y = baseBob;
-        
-        // Emit Particles if customized
-        if(this.isCustom) {
-            if(Math.random() > 0.5) {
-                spawnParticle(this.mesh.position, playerCustomData.weaponColor, 0.1);
-            }
+        if(this.isCustom && Math.random() > 0.5) {
+            spawnParticle(this.mesh.position, playerCustomData.weaponColor, 0.1);
         }
     } else {
       this.mesh.rotation.y = THREE.MathUtils.lerp(this.mesh.rotation.y, 0, 0.1);
       this.mesh.position.y = 0;
     }
     
-    // Animate Drones
     if(this.drones) {
         this.dronesAngle += dt * 2;
         this.drones.children.forEach((d, i) => {
@@ -872,7 +895,6 @@ class Player {
   takeDamage(amt) {
     this.hp -= amt;
     Sound.hit();
-    // Flash white
     this.mesh.traverse(c => { if(c.isMesh) c.material.emissive.setHex(0xffffff); });
     setTimeout(() => { 
       if(this.mesh) {
@@ -881,7 +903,6 @@ class Player {
       }
     }, 100);
     updateHUD();
-
     if(this.hp <= 0) this.die();
   }
 
@@ -892,7 +913,7 @@ class Player {
   }
 }
 
-// --- ENEMY & BOSS (Unchanged for brevity, kept logic same) ---
+// --- ENEMY & BOSS ---
 
 class Enemy {
   constructor() {
@@ -926,7 +947,6 @@ class CrimsonNebulaTitan {
         const darkMetalMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.7, metalness: 0.8 });
         const neonMat = new THREE.MeshStandardMaterial({ color: 0x550000, emissive: 0xff0000, emissiveIntensity: 2 });
         
-        // Simple Boss Construction (Kept same as before)
         const torso = new THREE.Mesh(new THREE.BoxGeometry(8, 6, 4), darkMetalMat); torso.position.y = 8; this.mesh.add(torso);
         this.core = new THREE.Mesh(new THREE.SphereGeometry(1.5, 16, 16), new THREE.MeshBasicMaterial({ color: 0xff0000 }));
         this.core.position.set(0, 8, 2.5); this.mesh.add(this.core);
@@ -935,18 +955,17 @@ class CrimsonNebulaTitan {
         const headGroup = new THREE.Group(); headGroup.position.set(0, 12.5, 0);
         const head = new THREE.Mesh(new THREE.BoxGeometry(3, 2, 3), darkMetalMat); head.position.z = 1; headGroup.add(head);
         const eyeGeo = new THREE.BoxGeometry(0.8, 0.4, 0.2);
-        // create eyes and set positions explicitly (avoid using clone().set which is invalid)
         const eye1 = new THREE.Mesh(eyeGeo, neonMat); eye1.position.set(-0.8, 0.2, 2.6); headGroup.add(eye1);
         const eye2 = new THREE.Mesh(eyeGeo, neonMat); eye2.position.set(0.8, 0.2, 2.6); headGroup.add(eye2);
         this.mesh.add(headGroup); this.head = headGroup;
 
         const shoulderGeo = new THREE.BoxGeometry(3, 2, 3);
-        this.mesh.add(new THREE.Mesh(shoulderGeo, darkMetalMat).clone().set(-6, 9, 0));
-        this.mesh.add(new THREE.Mesh(shoulderGeo, darkMetalMat).clone().set(6, 9, 0));
+        const lShoulder = new THREE.Mesh(shoulderGeo, darkMetalMat); lShoulder.position.set(-6, 9, 0); this.mesh.add(lShoulder);
+        const rShoulder = new THREE.Mesh(shoulderGeo, darkMetalMat); rShoulder.position.set(6, 9, 0); this.mesh.add(rShoulder);
         
         const legGeo = new THREE.BoxGeometry(2, 6, 2);
-        this.mesh.add(new THREE.Mesh(legGeo, darkMetalMat).clone().set(-2, 3, 0));
-        this.mesh.add(new THREE.Mesh(legGeo, darkMetalMat).clone().set(2, 3, 0));
+        const lLeg = new THREE.Mesh(legGeo, darkMetalMat); lLeg.position.set(-2, 3, 0); this.mesh.add(lLeg);
+        const rLeg = new THREE.Mesh(legGeo, darkMetalMat); rLeg.position.set(2, 3, 0); this.mesh.add(rLeg);
         
         this.mesh.position.set(0, 0, -40); scene.add(this.mesh);
         this.state = 'enter'; this.attackTimer = 0;
@@ -984,7 +1003,8 @@ class CrimsonNebulaTitan {
     attack() {
         Sound.enemyShoot();
         const positions = [new THREE.Vector3(-6, 7, 2), new THREE.Vector3(6, 7, 2)];
-        let targetPos = new THREE.Vector3(0,0,0); PLAYERS.forEach(p => { if(!p.dead) targetPos = p.mesh.position; });
+        let targetPos = new THREE.Vector3(0,0,0); 
+        PLAYERS.forEach(p => { if(!p.dead) targetPos = p.mesh.position; });
         positions.forEach(pos => {
             const worldPos = pos.clone().applyMatrix4(this.mesh.matrixWorld);
             const b = new THREE.Mesh(new THREE.SphereGeometry(0.8), new THREE.MeshBasicMaterial({ color: 0xff0000 }));
@@ -1010,7 +1030,14 @@ class CrimsonNebulaTitan {
 }
 
 // --- LEVELS ---
-function clearLevel() { LEVEL_OBJECTS.forEach(o => scene.remove(o)); LEVEL_OBJECTS.length = 0; }
+function clearLevel() { 
+    LEVEL_OBJECTS.forEach(o => scene.remove(o)); 
+    LEVEL_OBJECTS.length = 0; 
+    // Reset enemies
+    ENEMIES.forEach(e => scene.remove(e.mesh)); ENEMIES.length = 0;
+    if(boss) { scene.remove(boss.mesh); boss = null; }
+}
+
 function createNebulaLevel() {
   scene.fog.color.setHex(0x110022); scene.background = new THREE.Color(0x050010);
   const grid = new THREE.GridHelper(200, 100, 0xaa00aa, 0x110011); scene.add(grid); LEVEL_OBJECTS.push(grid);
@@ -1064,7 +1091,6 @@ let lastShot = [0, 0];
 function update(dt) {
   if(!GAME.active) return;
 
-  // Player Logic
   if(!PLAYERS[0].dead) {
     PLAYERS[0].update(dt, getInpP1());
     if(getInpP1().fire && Date.now() > lastShot[0]) { shoot(PLAYERS[0]); lastShot[0] = Date.now() + 150; }
@@ -1074,7 +1100,6 @@ function update(dt) {
     if(getInpP2().fire && Date.now() > lastShot[1]) { shoot(PLAYERS[1]); lastShot[1] = Date.now() + 150; }
   }
 
-  // Bullet Logic
   for(let i=BULLETS.length-1; i>=0; i--) {
     const b = BULLETS[i];
     b.mesh.position.add(b.vel);
@@ -1102,7 +1127,6 @@ function update(dt) {
     }
   }
 
-  // Enemy Logic
   ENEMIES.forEach(e => e.update(dt));
   if(boss && !boss.dead) { if(Math.random() < 0.01 && ENEMIES.length < 3) ENEMIES.push(new Enemy()); }
   else { if(Math.random() < 0.02 && ENEMIES.length < 8) ENEMIES.push(new Enemy()); }
@@ -1113,7 +1137,6 @@ function update(dt) {
   }
   if(boss) boss.update(dt, PLAYERS);
 
-  // Particles
   for(let i=PARTICLES.length-1; i>=0; i--) {
     const p = PARTICLES[i]; p.position.add(p.userData.vel); p.userData.vel.y -= 0.02;
     p.userData.life -= 0.02; p.scale.setScalar(p.userData.life); p.rotation.x += 0.1;
@@ -1125,9 +1148,7 @@ function update(dt) {
 
 function shoot(player) {
   Sound.shoot();
-  // Use custom color if P1, else default
   const pColor = (player.id === 0 && player.isCustom) ? playerCustomData.weaponColor : player.color;
-  
   const bMesh = new THREE.Mesh(new THREE.SphereGeometry(0.3), new THREE.MeshBasicMaterial({ color: pColor }));
   bMesh.position.copy(player.mesh.position); bMesh.position.y += 1.5;
   const dir = new THREE.Vector3(0,0,-1).applyAxisAngle(new THREE.Vector3(0,1,0), player.mesh.rotation.y);
@@ -1142,7 +1163,8 @@ function updateHUD() {
 }
 
 function drawRadar() {
-  const cvs = document.getElementById('radar-canvas'); const ctx = cvs.getContext('2d');
+  const cvs = document.getElementById('radar-canvas'); if(!cvs) return;
+  const ctx = cvs.getContext('2d');
   ctx.clearRect(0,0,200,200);
   ctx.strokeStyle = 'rgba(0,255,0,0.2)';
   ctx.beginPath(); ctx.arc(100,100,90,0,Math.PI*2); ctx.stroke();
@@ -1151,7 +1173,7 @@ function drawRadar() {
   const scale = 1.0; const cx = 100; const cz = 100;
   PLAYERS.forEach(p => {
     if(!p.dead) {
-        ctx.fillStyle = p.id===0 ? '#0ff' : '#f00'; // Radar always cyan/red for visibility
+        ctx.fillStyle = p.id===0 ? '#0ff' : '#f00'; 
         ctx.beginPath(); ctx.arc(cx + p.mesh.position.x*scale, cz + p.mesh.position.z*scale, 3, 0, Math.PI*2); ctx.fill();
     }
   });
@@ -1163,7 +1185,8 @@ function drawRadar() {
 }
 
 function showNotification(text) {
-    const el = document.getElementById('center-notify'); el.innerText = text;
+    const el = document.getElementById('center-notify'); if(!el) return;
+    el.innerText = text;
     el.style.opacity = 1; el.style.transform = "scale(1.5)";
     setTimeout(() => { el.style.opacity = 0; el.style.transform = "scale(1)"; }, 2000);
 }
@@ -1177,20 +1200,18 @@ window.setLevel = (idx, el) => {
 };
 
 window.saveAndStart = () => {
-    // Start game with P1 using customization
     startGame(1);
 };
 
 window.startGame = (mode) => {
   GAME.mode = mode; GAME.active = true; GAME.score = 0; GAME.bossSpawned = false; boss = null;
   document.getElementById('menu-screen').style.display = 'none';
-  document.getElementById('custom-screen').style.display = 'none'; // Ensure custom screen is hidden
+  document.getElementById('custom-screen').style.display = 'none'; 
   document.getElementById('game-ui').style.display = 'block';
   document.getElementById('boss-hud-container').style.display = 'none';
   
   if(audioCtx.state === 'suspended') audioCtx.resume();
 
-  // Cleanup Preview Robot if exists
   if(previewRobot) { scene.remove(previewRobot); previewRobot = null; }
 
   clearLevel();
@@ -1200,7 +1221,6 @@ window.startGame = (mode) => {
 
   PLAYERS.forEach(p => scene.remove(p.mesh)); PLAYERS.length = 0;
   
-  // P1 gets customization, P2 is standard
   PLAYERS.push(new Player(0, 0x00ffff, new THREE.Vector3(0,0,20), true));
   
   if(mode === 2) {
@@ -1246,20 +1266,24 @@ function animate() {
 
   update(dt);
 
-  // Camera Logic
   if(GAME.state === 'menu') {
-    camera.position.x = Math.sin(time * 0.1) * 20; camera.position.z = 20 + Math.cos(time * 0.1) * 10;
-    camera.position.y = 5 + Math.sin(time * 0.2) * 2; camera.lookAt(0, 0, 0);
-    menuCore.rotation.x = time * 0.5; menuCore.rotation.y = time * 0.3;
-    const positions = stars.geometry.attributes.position.array;
-    for(let i=1; i<positions.length; i+=3) { positions[i] -= 0.05; if(positions[i] < -50) positions[i] = 50; }
-    stars.geometry.attributes.position.needsUpdate = true;
+    if(menuCore) {
+        camera.position.x = Math.sin(time * 0.1) * 20; 
+        camera.position.z = 20 + Math.cos(time * 0.1) * 10;
+        camera.position.y = 5 + Math.sin(time * 0.2) * 2; 
+        camera.lookAt(0, 0, 0);
+        menuCore.rotation.x = time * 0.5; menuCore.rotation.y = time * 0.3;
+        if(stars) {
+            const positions = stars.geometry.attributes.position.array;
+            for(let i=1; i<positions.length; i+=3) { positions[i] -= 0.05; if(positions[i] < -50) positions[i] = 50; }
+            stars.geometry.attributes.position.needsUpdate = true;
+        }
+    }
   } 
   else if (GAME.state === 'customize') {
       if(previewControls) {
           previewControls.update();
       }
-      // Update animation mixer for preview
       if(previewMixer) previewMixer.update(dt);
   }
   else if (GAME.state === 'playing') {
@@ -1289,5 +1313,14 @@ function animate() {
   composer.render();
 }
 
-window.addEventListener('resize', () => { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); composer.setSize(window.innerWidth, window.innerHeight); });
+window.addEventListener('resize', () => { 
+    camera.aspect = window.innerWidth / window.innerHeight; 
+    camera.updateProjectionMatrix(); 
+    renderer.setSize(window.innerWidth, window.innerHeight); 
+    composer.setSize(window.innerWidth, window.innerHeight); 
+});
+
 animate();
+</script>
+</body>
+</html>

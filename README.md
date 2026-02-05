@@ -20,7 +20,7 @@ The game is actively evolving and serves as the core build of the QuantumClash p
 
 - HTML5  
 - JavaScript  
-- 3D Models (GLB / GLTF)  
+- 3D Models (GLB / GLTF / GLS)  
 - Vercel (Deployment)
 
 ---

@@ -1,0 +1,28 @@
+{
+  "name": "quantum-clash",
+  "version": "1.0.0",
+  "description": "QuantumClash 3D: Titan Protocol - A customizable 3D fighter game built with Three.js",
+  "type": "module",
+  "main": "index.html",
+  "scripts": {
+    "dev": "python -m http.server 3000",
+    "build": "echo 'Static HTML project - no build needed'",
+    "start": "python -m http.server 3000"
+  },
+  "keywords": [
+    "game",
+    "3d",
+    "three.js",
+    "webgl",
+    "fighter"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@vercel/speed-insights": "^1.0.0"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
